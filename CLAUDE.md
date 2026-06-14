@@ -90,4 +90,4 @@ Stop and ask via AskUserQuestion when:
 
 ## Self-improvement log
 
-_(populated after each feature retrospective)_
+- [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap ретроспектива; зафиксирован workaround для nc на Windows и ограничение eslint-plugin-react.
