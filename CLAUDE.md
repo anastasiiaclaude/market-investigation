@@ -83,6 +83,7 @@ Stop and ask via AskUserQuestion when:
 ## Docs TOC
 
 - [Requirements overview](docs/requirements/overview.md)
+- [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [Constraints](docs/constraints.md)
