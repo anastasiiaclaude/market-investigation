@@ -2,7 +2,7 @@
 
 ## Summary
 
-Web dashboard for competitive analysis. A Node + Express backend with a SQLite store holds competitor data, runs research jobs, and handles export and Jira/Confluence integration; the React app displays, compares, and lets you manage that data over a REST API.
+Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + React frontend talks to **serverless functions** (`api/`) backed by **Turso (libSQL)**; the backend holds competitor data, runs research jobs, and handles export and Jira/Confluence integration. See [ADR 003](../decisions/003-deploy-vercel-serverless.md).
 
 ## Frontend
 
@@ -16,15 +16,15 @@ Web dashboard for competitive analysis. A Node + Express backend with a SQLite s
 
 ## Backend
 
-- **Needed?** Yes — see [ADR 002](../decisions/002-add-backend.md).
-- **Stack:** Node + Express + TypeScript in a `server/` folder (sibling to `app/`).
+- **Needed?** Yes — [ADR 002](../decisions/002-add-backend.md) (have a backend), [ADR 003](../decisions/003-deploy-vercel-serverless.md) (serverless shape).
+- **Stack:** TypeScript **Vercel Serverless Functions** in an `api/` folder. No standalone server.
 - **Responsibilities:**
-  - REST API serving competitor data to the frontend
-  - Persistence in SQLite
-  - Research jobs (scheduled or on-demand) that fetch competitor data via WebSearch/WebFetch and write to the DB
-  - PDF/Excel export generation
-  - Jira/Confluence integration with credentials stored in `.env`
-- **How data flows:** the React app calls the backend over HTTP; the backend reads/writes SQLite. `competitors.json` becomes seed data for the initial DB.
+  - REST API serving competitor data to the frontend (`GET/POST/PUT /api/competitors`)
+  - Persistence in Turso (libSQL) via `@libsql/client`
+  - Research jobs (on-demand `POST /api/research` + Vercel Cron) that fetch competitor data via WebSearch/WebFetch and upsert to the DB
+  - PDF/Excel export generation (`GET /api/export`)
+  - Jira/Confluence integration with credentials in Vercel env vars
+- **How data flows:** the React app calls the functions over HTTP; the functions read/write Turso. `competitors.json` is the seed loaded into the DB on setup.
 
 ## Integrations
 
@@ -37,8 +37,8 @@ Web dashboard for competitive analysis. A Node + Express backend with a SQLite s
 
 ## Data & storage
 
-- **Store:** SQLite database managed by the backend (`server/`).
-- **Seed:** `competitors.json` provides initial data loaded into the DB on first run.
+- **Store:** Turso (libSQL) — SQLite-compatible, hosted, serverless-friendly.
+- **Seed:** `competitors.json` provides initial data loaded into the DB via a setup/migration script.
 - **Record schema:**
   ```ts
   interface Competitor {
@@ -65,7 +65,8 @@ Web dashboard for competitive analysis. A Node + Express backend with a SQLite s
   - Feature 007: Export to PDF/Excel — export the comparison table and cards
   - Feature 008: Jira integration — create issues based on identified feature gaps
   - Feature 009: Confluence integration — publish the comparison table as a page
-- **Architecture:** the backend ([ADR 002](../decisions/002-add-backend.md)) handles parsing jobs, export, and Jira/Confluence server-side; the frontend consumes the REST API. Feature 002 may start against `competitors.json` seed data and switch to the API as the backend lands.
+- **Architecture:** serverless functions ([ADR 003](../decisions/003-deploy-vercel-serverless.md)) handle parsing jobs, export, and Jira/Confluence; the frontend consumes the REST API. Feature 002 may start against `competitors.json` seed data and switch to the API as the functions land.
+- **Detailed task breakdown:** see [TASK-PLAN.md](../TASK-PLAN.md).
 
 ## Open questions / risks
 

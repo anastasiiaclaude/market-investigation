@@ -12,10 +12,10 @@ market-investigation/        ← repo root (git)
   .gitignore  .editorconfig  .nvmrc  .env.example
   docs/                      ← requirements / decisions / retros / constraints
   app/                       ← Vite + React + TypeScript frontend code
-  server/                    ← Node + Express + SQLite backend (ADR 002)
+  api/                       ← Vercel serverless functions (ADR 002 + 003)
 ```
 
-Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Frontend code lives in `app/`, backend code in `server/`.
+Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Frontend code lives in `app/`, serverless backend in `api/`. Deploys to Vercel; data in Turso (libSQL).
 
 ## Dev server
 
@@ -84,11 +84,13 @@ Stop and ask via AskUserQuestion when:
 ## Docs TOC
 
 - [PRD](docs/PRD.md)
+- [Task plan](docs/TASK-PLAN.md)
 - [Requirements overview](docs/requirements/overview.md)
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
+- [ADR 003 — Vercel serverless + Turso](docs/decisions/003-deploy-vercel-serverless.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
