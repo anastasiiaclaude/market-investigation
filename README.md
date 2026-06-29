@@ -1,6 +1,6 @@
 # market-investigation
 
-Веб-дашборд для конкурентного анализа.
+Web dashboard for competitive analysis.
 
 ## Quick start
 

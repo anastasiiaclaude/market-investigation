@@ -1,6 +1,6 @@
 # CLAUDE.md — market-investigation
 
-Веб-дашборд для конкурентного анализа. Позволяет визуализировать и управлять данными о конкурентах в рамках исследования рынка.
+Web dashboard for competitive analysis. Lets you visualize and manage competitor data as part of market research.
 
 ## Repository layout
 
@@ -14,7 +14,7 @@ market-investigation/        ← repo root (git)
   app/                       ← Vite + React + TypeScript application code
 ```
 
-Governance files (`CLAUDE.md`, `README.md`, `docs/**`) живут только в корне. Код — только в `app/`.
+Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Code lives only in `app/`.
 
 ## Dev server
 
@@ -22,9 +22,9 @@ Governance files (`CLAUDE.md`, `README.md`, `docs/**`) живут только �
 npm run dev   →   http://127.0.0.1:5173/
 ```
 
-Port хранится в `.dev-port` (по умолчанию 5173).
+Port is stored in `.dev-port` (defaults to 5173).
 
-## Common commands (все из корня репо)
+## Common commands (all from repo root)
 
 ```
 npm run dev        # dev server
@@ -41,11 +41,11 @@ npm run setup      # install app/ deps
 
 - `app/vite.config.ts` — port config + path alias `@/`
 - `app/vitest.config.ts` — test environment
-- `docs/constraints.md` — что нельзя делать
+- `docs/constraints.md` — what you must not do
 
 ## Current state
 
-Hello world greeting отрисован; фичи не запланированы.
+Hello world greeting rendered; no features planned yet.
 
 ## Working agreement
 
@@ -91,4 +91,4 @@ Stop and ask via AskUserQuestion when:
 
 ## Self-improvement log
 
-- [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap ретроспектива; зафиксирован workaround для nc на Windows и ограничение eslint-plugin-react.
+- [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap retrospective; recorded the nc workaround on Windows and the eslint-plugin-react limitation.

@@ -2,19 +2,19 @@
 
 ## What we did
 
-Создали структуру репо с governance в корне и кодом в `app/`, установили Vite + React + TS, настроили vitest/eslint/prettier, прошли spec-first цикл для hello world greeting, запустили dev server.
+Created the repo structure with governance at the root and code in `app/`, installed Vite + React + TS, set up vitest/eslint/prettier, ran the spec-first cycle for the hello world greeting, and started the dev server.
 
 ## What worked
 
-- Vite уже поставляет eslint.config.js с flat config и нужными плагинами — дополнительная настройка минимальна.
-- Spec-first цикл: красный тест → модуль → зелёный тест — работает чисто.
-- Root pass-through scripts через `--prefix app` — удобно, не нужны npm workspaces.
+- Vite already ships an eslint.config.js with flat config and the needed plugins — minimal extra setup.
+- The spec-first cycle: red test → module → green test — works cleanly.
+- Root pass-through scripts via `--prefix app` are convenient; no npm workspaces needed.
 
 ## What didn't / friction points
 
-- `nc` (netcat) отсутствует на Windows — заменили port probe на PowerShell `TcpClient`. Это нужно учитывать в будущих скриптах.
-- `eslint-plugin-react` несовместим с ESLint 10 (Vite 8 тащит ESLint 10) — не устанавливали, используем `eslint-plugin-react-hooks`. Зафиксировано в `docs/constraints.md`.
-- `.claude/launch.json` не создаём через Claude (ограничение классификатора) — нужно создавать вручную при необходимости.
+- `nc` (netcat) is missing on Windows — replaced the port probe with a PowerShell `TcpClient`. This needs to be kept in mind for future scripts.
+- `eslint-plugin-react` is incompatible with ESLint 10 (Vite 8 pulls in ESLint 10) — not installed; we use `eslint-plugin-react-hooks`. Recorded in `docs/constraints.md`.
+- `.claude/launch.json` is not created via Claude (classifier limitation) — must be created manually when needed.
 
 ## Decisions to carry forward
 
@@ -22,8 +22,8 @@
 
 ## Changes made to CLAUDE.md / constraints / working agreement
 
-- Добавлен constraint про `eslint-plugin-react` в `docs/constraints.md`.
+- Added the `eslint-plugin-react` constraint to `docs/constraints.md`.
 
 ## Open questions for next session
 
-- Какую первую бизнес-фичу дашборда строим?
+- Which first business feature of the dashboard do we build?

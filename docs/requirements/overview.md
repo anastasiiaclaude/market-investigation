@@ -2,48 +2,48 @@
 
 ## Goal
 
-Веб-дашборд для конкурентного анализа продукта **VA-INDIGO Analysis Suite** компании **VON ARDENNE GmbH**.
+Web dashboard for competitive analysis of the **VA-INDIGO Analysis Suite** product by **VON ARDENNE GmbH**.
 
-Дашборд позволяет визуализировать и управлять данными о конкурентах: сравнивать их функциональность с VA-INDIGO, выявлять отсутствующие фичи и отслеживать рыночные возможности.
+The dashboard lets you visualize and manage competitor data: compare their functionality with VA-INDIGO, identify missing features, and track market opportunities.
 
-## Компания — VON ARDENNE GmbH
+## Company — VON ARDENNE GmbH
 
-- **Сайт:** https://vonardenne.de/
-- **Отрасль:** Производство вакуумного оборудования для нанесения тонкоплёночных покрытий
-- **Продукт для анализа:** VA-INDIGO Analysis Suite — https://vonardenne.de/digitale-loesungen/va-indigo/
-- **Целевые рынки:** солнечная энергетика, полупроводники, водород и топливные элементы, аккумуляторы, архитектурное остекление, дисплеи, аэрокосмос
-- **Масштаб:** >1000 систем в 50+ странах, 6 локаций (Dresden HQ + Китай, Индия, Малайзия, США, Вьетнам)
+- **Website:** https://vonardenne.de/
+- **Industry:** Manufacturing of vacuum coating equipment for thin-film coatings
+- **Product under analysis:** VA-INDIGO Analysis Suite — https://vonardenne.de/digitale-loesungen/va-indigo/
+- **Target markets:** solar energy, semiconductors, hydrogen and fuel cells, batteries, architectural glazing, displays, aerospace
+- **Scale:** >1000 systems in 50+ countries, 6 locations (Dresden HQ + China, India, Malaysia, USA, Vietnam)
 
-## Продукт VA-INDIGO Analysis Suite
+## VA-INDIGO Analysis Suite product
 
-Набор из четырёх программных модулей для мониторинга и анализа производственных данных:
+A set of four software modules for monitoring and analyzing production data:
 
-| Модуль | Назначение |
+| Module | Purpose |
 |---|---|
-| **VA Dashboard** | Отображение ключевых производственных KPI в реальном времени |
-| **VA ProcessDB Interface** | Подключение к машинным данным, интеграция производственных систем |
-| **VA ProcessDB Trend & Exporter** | Визуализация трендов, экспорт данных для дальнейшего анализа |
-| **VA Vacuum Analyzer** | Оценка качества вакуума в производственных процессах |
+| **VA Dashboard** | Real-time display of key production KPIs |
+| **VA ProcessDB Interface** | Connection to machine data, integration of production systems |
+| **VA ProcessDB Trend & Exporter** | Trend visualization, data export for further analysis |
+| **VA Vacuum Analyzer** | Vacuum quality assessment in production processes |
 
 ## Primary user
 
-Один пользователь (product manager), запускает локально в браузере.
+A single user (product manager), runs it locally in the browser.
 
 ## Success criteria
 
-- Данные о конкурентах отображаются структурировано
-- Можно сравнивать конкурентов с VA-INDIGO по ключевым функциональным областям
-- Выявленные пробелы видны явно (матрица strong / adequate / weak / absent)
-- Дашборд запускается локально без дополнительной инфраструктуры
+- Competitor data is displayed in a structured way
+- Competitors can be compared with VA-INDIGO across key functional areas
+- Identified gaps are clearly visible (strong / adequate / weak / absent matrix)
+- The dashboard runs locally with no extra infrastructure
 
 ## MVP scope
 
-- Сравнительная таблица и карточки конкурентов
-- Автоматический парсинг данных в реальном времени
-- Экспорт в PDF/Excel
-- Интеграция с Jira/Confluence (отдельная задача)
+- Comparison table and competitor cards
+- Real-time automatic parsing of data
+- Export to PDF/Excel
+- Jira/Confluence integration (separate task)
 
 ## Out of scope
 
-- Аутентификация и роли
-- Мобильная версия
+- Authentication and roles
+- Mobile version

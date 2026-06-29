@@ -2,17 +2,17 @@
 
 ## Context
 
-Нужно разделить governance-слой (документация, конфигурация агента) и код приложения, чтобы Claude не путал их и не создавал код в корне репо.
+We need to separate the governance layer (documentation, agent configuration) from the application code, so Claude does not confuse them or create code at the repo root.
 
 ## Decision
 
-- `CLAUDE.md`, `README.md`, `docs/**` — только в корне репо.
-- Весь код Vite + React + TypeScript — только в `app/`.
-- Root `package.json` содержит pass-through scripts (`npm --prefix app run ...`).
-- Единственный `.gitignore` — в корне. `app/.gitignore` удалён.
+- `CLAUDE.md`, `README.md`, `docs/**` — at the repo root only.
+- All Vite + React + TypeScript code — in `app/` only.
+- Root `package.json` holds pass-through scripts (`npm --prefix app run ...`).
+- A single `.gitignore` lives at the root. `app/.gitignore` was removed.
 
 ## Consequences
 
-- Claude всегда читает `CLAUDE.md` в корне и знает структуру.
-- `app/` можно заменить другим фреймворком без изменения governance.
-- Root-level CI конфиги (.github/, etc.) допустимы; app-код в корне — нет.
+- Claude always reads `CLAUDE.md` at the root and knows the structure.
+- `app/` can be swapped for another framework without changing governance.
+- Root-level CI configs (.github/, etc.) are allowed; app code at the root is not.

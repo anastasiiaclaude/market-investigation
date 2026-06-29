@@ -2,34 +2,34 @@
 
 ## Summary
 
-Веб-дашборд для конкурентного анализа. Claude ищет конкурентов в интернете и сохраняет данные в JSON-файл; React-приложение отображает, сравнивает и позволяет управлять этими данными.
+Web dashboard for competitive analysis. Claude searches the web for competitors and saves the data to a JSON file; the React app displays, compares, and lets you manage that data.
 
 ## Frontend
 
 - **Stack:** Vite + React + TypeScript (boilerplate default)
-- **Главные экраны / компоненты:**
-  - `CompetitorTable` — таблица сравнения фич: конкуренты в колонках, фичи в строках
-  - `CompetitorCard` — карточка конкурента с детальной информацией
-  - `ViewToggle` — переключатель между таблицей и карточками
-  - `FeatureMatrix` — матрица наличия/отсутствия фич (сильная/слабая/отсутствует)
-  - `CompetitorForm` — форма ручного редактирования / добавления записи
+- **Main screens / components:**
+  - `CompetitorTable` — feature comparison table: competitors in columns, features in rows
+  - `CompetitorCard` — competitor card with detailed information
+  - `ViewToggle` — switch between table and cards
+  - `FeatureMatrix` — feature presence/absence matrix (strong/weak/absent)
+  - `CompetitorForm` — form for manually editing / adding a record
 
 ## Backend
 
-- **Нужен?** Нет.
-- **Как это работает:** Claude (агент) запускает веб-поиск, формирует данные и записывает их в `app/src/data/competitors.json`. React-приложение импортирует этот файл статически. Никакого сервера не нужно — данные обновляются через агента, а не через runtime API.
+- **Needed?** No.
+- **How it works:** Claude (the agent) runs a web search, builds the data, and writes it to `app/src/data/competitors.json`. The React app imports this file statically. No server is needed — data is updated through the agent, not via a runtime API.
 
 ## Integrations
 
-| Сервис | Назначение | Как | Auth |
+| Service | Purpose | How | Auth |
 |---|---|---|---|
-| WebSearch (Claude tool) | Поиск конкурентов и их фич | Встроенный инструмент агента | Не нужен |
-| WebFetch (Claude tool) | Чтение страниц конкурентов | Встроенный инструмент агента | Не нужен |
+| WebSearch (Claude tool) | Finding competitors and their features | Built-in agent tool | Not needed |
+| WebFetch (Claude tool) | Reading competitor pages | Built-in agent tool | Not needed |
 
 ## Data & storage
 
-- **Формат:** `app/src/data/competitors.json` — массив объектов-конкурентов
-- **Схема записи:**
+- **Format:** `app/src/data/competitors.json` — an array of competitor objects
+- **Record schema:**
   ```ts
   interface Competitor {
     id: string;
@@ -40,31 +40,31 @@
     updatedAt: string;
   }
   ```
-- **Между сессиями:** данные живут в файле в репозитории — Git служит историей изменений
-- **Редактирование:** через форму в UI (обновляет state) + Claude перезаписывает JSON при новом исследовании
-- **Persistence:** localStorage для UI-состояния (выбранный вид, фильтры); реальные данные — в JSON-файле
+- **Between sessions:** data lives in a file in the repository — Git serves as the change history
+- **Editing:** via a UI form (updates state) + Claude rewrites the JSON on a new research run
+- **Persistence:** localStorage for UI state (selected view, filters); the real data is in the JSON file
 
-## MVP scope (фичи для реализации)
+## MVP scope (features to build)
 
-- **Feature 002 (первая):** Загрузка и отображение `competitors.json` в виде таблицы сравнения фич — `CompetitorTable` с матрицей strong/adequate/weak/absent
-- **Затем:**
-  - Feature 003: Карточки конкурентов (`CompetitorCard`) + переключатель вида
-  - Feature 004: Форма ручного редактирования/добавления конкурента (обновляет JSON через агента)
-  - Feature 005: Фильтрация и поиск по таблице
-  - Feature 006: Автоматический парсинг в реальном времени — агент обновляет `competitors.json` по запросу или расписанию
-  - Feature 007: Экспорт в PDF/Excel — выгрузка таблицы сравнения и карточек
-  - Feature 008: Интеграция с Jira — создание задач на основе выявленных пробелов в фичах
-  - Feature 009: Интеграция с Confluence — публикация сравнительной таблицы как страницы
-- **Как вписываемся в ограничения:** статический импорт JSON для базовых фич; парсинг, экспорт и интеграции (Jira/Confluence) требуют выхода за рамки статического boilerplate — оформляются через ADR (см. ниже)
+- **Feature 002 (first):** Load and display `competitors.json` as a feature comparison table — `CompetitorTable` with the strong/adequate/weak/absent matrix
+- **Then:**
+  - Feature 003: Competitor cards (`CompetitorCard`) + view toggle
+  - Feature 004: Form for manually editing/adding a competitor (updates the JSON via the agent)
+  - Feature 005: Filtering and search across the table
+  - Feature 006: Real-time automatic parsing — the agent updates `competitors.json` on request or on a schedule
+  - Feature 007: Export to PDF/Excel — export the comparison table and cards
+  - Feature 008: Jira integration — create issues based on identified feature gaps
+  - Feature 009: Confluence integration — publish the comparison table as a page
+- **How we fit the constraints:** static JSON import for the base features; parsing, export, and integrations (Jira/Confluence) require going beyond the static boilerplate — handled via an ADR (see below)
 
-## Конфликт с ограничениями (требует ADR)
+## Conflict with constraints (requires an ADR)
 
-Парсинг в реальном времени, экспорт и интеграции с Jira/Confluence не вписываются в чисто статический Vite + React boilerplate (нет бэкенда). Перед Feature 006–009 нужно решение:
+Real-time parsing, export, and Jira/Confluence integrations do not fit a purely static Vite + React boilerplate (no backend). Before Feature 006–009 a decision is needed:
 
-- **Парсинг/интеграции** — выполняются агентом (Claude) через MCP-инструменты (Atlassian connector, WebSearch/WebFetch), а не runtime-сервером. Это сохраняет «no backend», но фиксируется в `docs/decisions/NNN-*.md`.
-- **Экспорт PDF/Excel** — клиентские библиотеки в браузере (например, через ADR на новую зависимость).
+- **Parsing/integrations** — performed by the agent (Claude) via MCP tools (Atlassian connector, WebSearch/WebFetch), not a runtime server. This preserves "no backend" but is recorded in `docs/decisions/NNN-*.md`.
+- **PDF/Excel export** — client-side libraries in the browser (e.g., via an ADR for a new dependency).
 
 ## Open questions / risks
 
-- Структура `features` в JSON должна быть согласована до Feature 002 — набор фич фиксируется при первом исследовании (можно расширять через ADR)
-- `competitors.json` изначально будет пустым или содержать мок-данные для разработки UI — уточнить перед Feature 002
+- The `features` structure in the JSON must be agreed before Feature 002 — the feature set is fixed during the first research run (can be extended via an ADR)
+- `competitors.json` will initially be empty or contain mock data for UI development — clarify before Feature 002
