@@ -11,10 +11,11 @@ market-investigation/        ← repo root (git)
   package.json               ← root pass-through scripts
   .gitignore  .editorconfig  .nvmrc  .env.example
   docs/                      ← requirements / decisions / retros / constraints
-  app/                       ← Vite + React + TypeScript application code
+  app/                       ← Vite + React + TypeScript frontend code
+  server/                    ← Node + Express + SQLite backend (ADR 002)
 ```
 
-Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Code lives only in `app/`.
+Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Frontend code lives in `app/`, backend code in `server/`.
 
 ## Dev server
 
@@ -82,10 +83,12 @@ Stop and ask via AskUserQuestion when:
 
 ## Docs TOC
 
+- [PRD](docs/PRD.md)
 - [Requirements overview](docs/requirements/overview.md)
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
+- [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 

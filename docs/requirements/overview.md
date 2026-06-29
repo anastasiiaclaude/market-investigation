@@ -39,6 +39,7 @@ A single user (product manager), runs it locally in the browser.
 ## MVP scope
 
 - Comparison table and competitor cards
+- Backend service (Node + Express + SQLite) for persistence, jobs, and integrations — see [ADR 002](../decisions/002-add-backend.md)
 - Real-time automatic parsing of data
 - Export to PDF/Excel
 - Jira/Confluence integration (separate task)

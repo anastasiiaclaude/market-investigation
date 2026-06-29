@@ -2,7 +2,7 @@
 
 ## Summary
 
-Web dashboard for competitive analysis. Claude searches the web for competitors and saves the data to a JSON file; the React app displays, compares, and lets you manage that data.
+Web dashboard for competitive analysis. A Node + Express backend with a SQLite store holds competitor data, runs research jobs, and handles export and Jira/Confluence integration; the React app displays, compares, and lets you manage that data over a REST API.
 
 ## Frontend
 
@@ -16,8 +16,15 @@ Web dashboard for competitive analysis. Claude searches the web for competitors 
 
 ## Backend
 
-- **Needed?** No.
-- **How it works:** Claude (the agent) runs a web search, builds the data, and writes it to `app/src/data/competitors.json`. The React app imports this file statically. No server is needed — data is updated through the agent, not via a runtime API.
+- **Needed?** Yes — see [ADR 002](../decisions/002-add-backend.md).
+- **Stack:** Node + Express + TypeScript in a `server/` folder (sibling to `app/`).
+- **Responsibilities:**
+  - REST API serving competitor data to the frontend
+  - Persistence in SQLite
+  - Research jobs (scheduled or on-demand) that fetch competitor data via WebSearch/WebFetch and write to the DB
+  - PDF/Excel export generation
+  - Jira/Confluence integration with credentials stored in `.env`
+- **How data flows:** the React app calls the backend over HTTP; the backend reads/writes SQLite. `competitors.json` becomes seed data for the initial DB.
 
 ## Integrations
 
@@ -25,10 +32,13 @@ Web dashboard for competitive analysis. Claude searches the web for competitors 
 |---|---|---|---|
 | WebSearch (Claude tool) | Finding competitors and their features | Built-in agent tool | Not needed |
 | WebFetch (Claude tool) | Reading competitor pages | Built-in agent tool | Not needed |
+| Jira | Create issues from feature gaps | Backend via Atlassian REST API | API token in `.env` |
+| Confluence | Publish comparison as a page | Backend via Atlassian REST API | API token in `.env` |
 
 ## Data & storage
 
-- **Format:** `app/src/data/competitors.json` — an array of competitor objects
+- **Store:** SQLite database managed by the backend (`server/`).
+- **Seed:** `competitors.json` provides initial data loaded into the DB on first run.
 - **Record schema:**
   ```ts
   interface Competitor {
@@ -40,9 +50,9 @@ Web dashboard for competitive analysis. Claude searches the web for competitors 
     updatedAt: string;
   }
   ```
-- **Between sessions:** data lives in a file in the repository — Git serves as the change history
-- **Editing:** via a UI form (updates state) + Claude rewrites the JSON on a new research run
-- **Persistence:** localStorage for UI state (selected view, filters); the real data is in the JSON file
+- **Between sessions:** data persists in the SQLite file.
+- **Editing:** via a UI form that calls the backend API; research jobs also update the DB.
+- **UI state:** localStorage for view/filter preferences (frontend only).
 
 ## MVP scope (features to build)
 
@@ -55,14 +65,7 @@ Web dashboard for competitive analysis. Claude searches the web for competitors 
   - Feature 007: Export to PDF/Excel — export the comparison table and cards
   - Feature 008: Jira integration — create issues based on identified feature gaps
   - Feature 009: Confluence integration — publish the comparison table as a page
-- **How we fit the constraints:** static JSON import for the base features; parsing, export, and integrations (Jira/Confluence) require going beyond the static boilerplate — handled via an ADR (see below)
-
-## Conflict with constraints (requires an ADR)
-
-Real-time parsing, export, and Jira/Confluence integrations do not fit a purely static Vite + React boilerplate (no backend). Before Feature 006–009 a decision is needed:
-
-- **Parsing/integrations** — performed by the agent (Claude) via MCP tools (Atlassian connector, WebSearch/WebFetch), not a runtime server. This preserves "no backend" but is recorded in `docs/decisions/NNN-*.md`.
-- **PDF/Excel export** — client-side libraries in the browser (e.g., via an ADR for a new dependency).
+- **Architecture:** the backend ([ADR 002](../decisions/002-add-backend.md)) handles parsing jobs, export, and Jira/Confluence server-side; the frontend consumes the REST API. Feature 002 may start against `competitors.json` seed data and switch to the API as the backend lands.
 
 ## Open questions / risks
 
