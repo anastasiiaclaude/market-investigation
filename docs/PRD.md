@@ -20,16 +20,39 @@ This dashboard gives a single PM a structured, locally-run view of competitors a
 8. **Export** — output the comparison to PDF/Excel.
 9. **Push to tooling** — create Jira issues from identified gaps and publish the comparison to Confluence.
 
+## Functional requirements
+
+Numbered so the roadmap and tests can trace back to them.
+
+| ID | Requirement |
+|---|---|
+| FR-1 | Display all competitors in a comparison table (competitors as columns, features as rows; strong / adequate / weak / absent). |
+| FR-2 | Inspect a single competitor in a card view (name, website, description, per-feature ratings). |
+| FR-3 | Toggle between table and card views; persist the choice in localStorage. |
+| FR-4 | Highlight gaps where VA-INDIGO is weak or absent vs. competitors. |
+| FR-5 | Add a competitor record via a form. |
+| FR-6 | Edit an existing competitor record. |
+| FR-7 | Filter and search the table by competitor or feature. |
+| FR-8 | Run on-demand research that fetches competitor pages. |
+| FR-9 | Summarize fetched pages into a summary + feature ratings via OpenRouter. |
+| FR-10 | Persist competitors in the database (CRUD). |
+| FR-11 | Deduplicate competitors on research so re-runs don't create duplicates. |
+| FR-12 | Schedule periodic research (Vercel Cron). |
+| FR-13 | Export the comparison to PDF/Excel. |
+| FR-14 | Create Jira issues from identified gaps. |
+| FR-15 | Publish the comparison to Confluence. |
+| FR-16 | Handle loading/error states, invalid URLs, and rate limits gracefully. |
+
 ## In scope
 
-- Comparison table and competitor cards with view toggle
-- Manual editing of competitor records
-- Filtering and search
-- A backend service (Node + Express + SQLite) for persistence, jobs, and integrations — see [ADR 002](decisions/002-add-backend.md)
-- Agent-driven research that populates the database (seeded from `competitors.json`)
-- Real-time automatic parsing of data
-- Export to PDF/Excel
-- Jira / Confluence integration (separate task)
+- Comparison table and competitor cards with view toggle (FR-1–FR-4)
+- Manual editing of competitor records (FR-5, FR-6)
+- Filtering and search (FR-7)
+- A serverless backend on Vercel for persistence, jobs, and integrations — see [ADR 002](decisions/002-add-backend.md), [ADR 003](decisions/003-deploy-vercel-serverless.md)
+- Research that fetches + summarizes competitor pages via OpenRouter (FR-8, FR-9)
+- Persistence + dedup in Postgres (FR-10–FR-12)
+- Export to PDF/Excel (FR-13)
+- Jira / Confluence integration (FR-14, FR-15)
 
 ## Out of scope
 

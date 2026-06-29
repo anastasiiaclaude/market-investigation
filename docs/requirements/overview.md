@@ -39,7 +39,7 @@ A single user (product manager), runs it locally in the browser.
 ## MVP scope
 
 - Comparison table and competitor cards
-- Backend as Vercel serverless functions + Turso DB for persistence, jobs, and integrations — see [ADR 002](../decisions/002-add-backend.md), [ADR 003](../decisions/003-deploy-vercel-serverless.md)
+- Backend as Vercel serverless functions + Postgres (Neon) for persistence, jobs, and integrations — see [ADR 002](../decisions/002-add-backend.md), [ADR 003](../decisions/003-deploy-vercel-serverless.md)
 - Real-time automatic parsing of data
 - Export to PDF/Excel
 - Jira/Confluence integration (separate task)

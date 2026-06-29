@@ -2,7 +2,7 @@
 
 ## Summary
 
-Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + React frontend talks to **serverless functions** (`api/`) backed by **Turso (libSQL)**; the backend holds competitor data, runs research jobs, and handles export and Jira/Confluence integration. See [ADR 003](../decisions/003-deploy-vercel-serverless.md).
+Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + React frontend talks to **serverless functions** (`api/`) backed by **Vercel Postgres (Neon) + Drizzle ORM**; the backend holds competitor data, runs research jobs, and handles export and Jira/Confluence integration. See [ADR 003](../decisions/003-deploy-vercel-serverless.md). Milestone breakdown in [ROADMAP.md](../ROADMAP.md).
 
 ## Frontend
 
@@ -20,11 +20,11 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
 - **Stack:** TypeScript **Vercel Serverless Functions** in an `api/` folder. No standalone server.
 - **Responsibilities:**
   - REST API serving competitor data to the frontend (`GET/POST/PUT /api/competitors`)
-  - Persistence in Turso (libSQL) via `@libsql/client`
+  - Persistence in Vercel Postgres (Neon) via Drizzle ORM
   - Research jobs (on-demand `POST /api/research` + Vercel Cron) that fetch competitor pages, summarize them via OpenRouter, and upsert to the DB
   - PDF/Excel export generation (`GET /api/export`)
   - Jira/Confluence integration with credentials in Vercel env vars
-- **How data flows:** the React app calls the functions over HTTP; the functions read/write Turso. `competitors.json` is the seed loaded into the DB on setup.
+- **How data flows:** the React app calls the functions over HTTP; the functions read/write Postgres via Drizzle. `competitors.json` is the seed loaded into the DB on setup.
 
 ## Integrations
 
@@ -38,7 +38,7 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
 
 ## Data & storage
 
-- **Store:** Turso (libSQL) — SQLite-compatible, hosted, serverless-friendly.
+- **Store:** Vercel Postgres (Neon) via Drizzle ORM — hosted, serverless-friendly, type-safe schema/queries.
 - **Seed:** `competitors.json` provides initial data loaded into the DB via a setup/migration script.
 - **Record schema:**
   ```ts
@@ -51,7 +51,7 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
     updatedAt: string;
   }
   ```
-- **Between sessions:** data persists in the SQLite file.
+- **Between sessions:** data persists in Postgres (Neon).
 - **Editing:** via a UI form that calls the backend API; research jobs also update the DB.
 - **UI state:** localStorage for view/filter preferences (frontend only).
 
@@ -67,7 +67,7 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
   - Feature 008: Jira integration — create issues based on identified feature gaps
   - Feature 009: Confluence integration — publish the comparison table as a page
 - **Architecture:** serverless functions ([ADR 003](../decisions/003-deploy-vercel-serverless.md)) handle parsing jobs, export, and Jira/Confluence; the frontend consumes the REST API. Feature 002 may start against `competitors.json` seed data and switch to the API as the functions land.
-- **Detailed task breakdown:** see [TASK-PLAN.md](../TASK-PLAN.md).
+- **Detailed milestone breakdown:** see [ROADMAP.md](../ROADMAP.md).
 
 ## Open questions / risks
 

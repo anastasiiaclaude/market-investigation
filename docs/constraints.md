@@ -7,8 +7,8 @@
 
 ## Architecture
 
-- The project has a **backend** per [ADR 002](decisions/002-add-backend.md), built as **Vercel serverless functions** in `api/` with a **Turso (libSQL)** database per [ADR 003](decisions/003-deploy-vercel-serverless.md). The earlier "no backend / no server / no database" baseline no longer applies.
-- **Deploy target is Vercel.** No standalone long-running server, no local-file persistence at runtime (functions are stateless; all state goes to Turso). GitHub Pages is rejected — it cannot run the runtime backend.
+- The project has a **backend** per [ADR 002](decisions/002-add-backend.md), built as **Vercel serverless functions** in `api/` with a **Vercel Postgres (Neon) + Drizzle ORM** database per [ADR 003](decisions/003-deploy-vercel-serverless.md). The earlier "no backend / no server / no database" baseline no longer applies.
+- **Deploy target is Vercel.** No standalone long-running server, no local-file persistence at runtime (functions are stateless; all state goes to Postgres). GitHub Pages is rejected — it cannot run the runtime backend.
 
 ## Baseline constraints
 

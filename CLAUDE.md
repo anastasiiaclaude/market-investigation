@@ -15,7 +15,7 @@ market-investigation/        ← repo root (git)
   api/                       ← Vercel serverless functions (ADR 002 + 003)
 ```
 
-Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Frontend code lives in `app/`, serverless backend in `api/`. Deploys to Vercel; data in Turso (libSQL).
+Governance files (`CLAUDE.md`, `README.md`, `docs/**`) live only at the root. Frontend code lives in `app/`, serverless backend in `api/`. Deploys to Vercel; data in Postgres (Neon) via Drizzle ORM.
 
 ## Dev server
 
@@ -84,14 +84,15 @@ Stop and ask via AskUserQuestion when:
 ## Docs TOC
 
 - [PRD](docs/PRD.md)
-- [Task plan](docs/TASK-PLAN.md)
+- [Roadmap (milestones M0–M8)](docs/ROADMAP.md)
 - [Requirements overview](docs/requirements/overview.md)
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
-- [ADR 003 — Vercel serverless + Turso](docs/decisions/003-deploy-vercel-serverless.md)
+- [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
 - [ADR 004 — OpenRouter summarization](docs/decisions/004-openrouter-summarization.md)
+- [ADR 005 — Competitor extraction](docs/decisions/005-competitor-extraction.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
