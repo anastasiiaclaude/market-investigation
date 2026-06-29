@@ -91,6 +91,7 @@ Stop and ask via AskUserQuestion when:
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Turso](docs/decisions/003-deploy-vercel-serverless.md)
+- [ADR 004 — OpenRouter summarization](docs/decisions/004-openrouter-summarization.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 

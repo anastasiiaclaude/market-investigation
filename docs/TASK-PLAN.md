@@ -38,8 +38,9 @@ Goal: the PM can manage data and find things.
 
 Goal: data refreshes itself.
 
-- [ ] **T3.1 — Research function.** `POST /api/research` runs WebSearch/WebFetch-driven extraction and upserts competitors into Turso. Parsing/normalization logic is a pure, tested module.
-- [ ] **T3.2 — Vercel Cron.** Schedule the research function (e.g. weekly); add an on-demand "Refresh" button in the UI.
+- [ ] **T3.1 — Research function.** `POST /api/research` fetches competitor pages and upserts competitors into Turso. Parsing/normalization logic is a pure, tested module.
+- [ ] **T3.2 — OpenRouter summarization.** A small server-side client ([ADR 004](decisions/004-openrouter-summarization.md)) turns fetched page text into a summary + feature ratings via OpenRouter (`OPENROUTER_API_KEY`, model from `OPENROUTER_MODEL`). The transform is pure/testable; the HTTP call is mocked in tests. Cache results in Turso to avoid re-summarizing unchanged pages.
+- [ ] **T3.3 — Vercel Cron.** Schedule the research function (e.g. weekly); add an on-demand "Refresh" button in the UI.
 
 ## Phase 4 — Output & integrations (Feature 007–009)
 

@@ -21,7 +21,7 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
 - **Responsibilities:**
   - REST API serving competitor data to the frontend (`GET/POST/PUT /api/competitors`)
   - Persistence in Turso (libSQL) via `@libsql/client`
-  - Research jobs (on-demand `POST /api/research` + Vercel Cron) that fetch competitor data via WebSearch/WebFetch and upsert to the DB
+  - Research jobs (on-demand `POST /api/research` + Vercel Cron) that fetch competitor pages, summarize them via OpenRouter, and upsert to the DB
   - PDF/Excel export generation (`GET /api/export`)
   - Jira/Confluence integration with credentials in Vercel env vars
 - **How data flows:** the React app calls the functions over HTTP; the functions read/write Turso. `competitors.json` is the seed loaded into the DB on setup.
@@ -32,6 +32,7 @@ Web dashboard for competitive analysis, deployed on **Vercel**. A static Vite + 
 |---|---|---|---|
 | WebSearch (Claude tool) | Finding competitors and their features | Built-in agent tool | Not needed |
 | WebFetch (Claude tool) | Reading competitor pages | Built-in agent tool | Not needed |
+| OpenRouter | Summarize pages → summary + ratings (runtime, server-side) | Backend via OpenAI-compatible REST | `OPENROUTER_API_KEY` |
 | Jira | Create issues from feature gaps | Backend via Atlassian REST API | API token in `.env` |
 | Confluence | Publish comparison as a page | Backend via Atlassian REST API | API token in `.env` |
 
