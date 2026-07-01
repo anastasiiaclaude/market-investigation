@@ -51,6 +51,10 @@ npm run setup      # install app/ deps
 Hello world greeting rendered. **M1 done:** Vercel skeleton — static SPA build
 (`vercel.json`) + `GET /api/health` serverless function returns `200 {status:"ok"}`.
 Backend lives in `api/` (web-standard handlers, pure logic in `api/_lib/`).
+**M2 done:** comparison core on mock data — `app/src/domain/` holds the `Competitor`
+Zod schema + `Rating`/feature-area enums (`competitor.ts`) and the pure
+`ratingToCell` presentation mapping (`rating-cell.ts`); mock dataset in
+`app/src/mocks/competitors.ts`. Zod added as a dependency (ADR 006).
 
 ## Working agreement
 
@@ -93,11 +97,13 @@ Stop and ask via AskUserQuestion when:
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [Feature 002 — Vercel skeleton (M1)](docs/requirements/feature-002-vercel-skeleton.md)
+- [Feature 003 — Comparison core (M2)](docs/requirements/feature-003-comparison-core.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
 - [ADR 004 — OpenRouter summarization](docs/decisions/004-openrouter-summarization.md)
 - [ADR 005 — Competitor extraction](docs/decisions/005-competitor-extraction.md)
+- [ADR 006 — Zod validation](docs/decisions/006-zod-validation.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
@@ -105,3 +111,4 @@ Stop and ask via AskUserQuestion when:
 
 - [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap retrospective; recorded the nc workaround on Windows and the eslint-plugin-react limitation.
 - [002-vercel-skeleton](docs/retrospectives/002-vercel-skeleton.md) — M1; web-standard `api/` handlers (no `@vercel/node` dep), vitest root moved to repo root, fixed deprecated `baseUrl` build break.
+- [003-comparison-core](docs/retrospectives/003-comparison-core.md) — M2; Zod 4 top-level formats (`z.url()`), exhaustive feature-record via explicit `z.object`, `erasableSyntaxOnly` rules out enums (used `as const` unions).
