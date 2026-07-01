@@ -41,16 +41,20 @@ npm run setup      # install app/ deps
 ## Critical files
 
 - `app/vite.config.ts` — port config + path alias `@/`
-- `app/vitest.config.ts` — test environment
+- `app/vitest.config.ts` — test env; discovers specs in `app/src/**` and `api/**`
+- `vercel.json` — Vercel build (SPA from `app/dist`) + `api/` functions
+- `api/health.ts` — `GET /api/health`; pure logic in `api/_lib/`
 - `docs/constraints.md` — what you must not do
 
 ## Current state
 
-Hello world greeting rendered; no features planned yet.
+Hello world greeting rendered. **M1 done:** Vercel skeleton — static SPA build
+(`vercel.json`) + `GET /api/health` serverless function returns `200 {status:"ok"}`.
+Backend lives in `api/` (web-standard handlers, pure logic in `api/_lib/`).
 
 ## Working agreement
 
-1. No code without a spec. Every feature begins as a file under `docs/requirements/` and a failing test under `app/src/**/*.spec.ts(x)`.
+1. No code without a spec. Every feature begins as a file under `docs/requirements/` and a failing test — `app/src/**/*.spec.ts(x)` for frontend logic, `api/**/*.spec.ts` for backend logic.
 2. No architectural choice without an ADR under `docs/decisions/`.
 3. Read `docs/constraints.md` before proposing anything new. Surface conflicts, don't silently comply.
 4. The loop is: spec → failing test → minimal code → green test → commit. One concern per commit.
@@ -88,6 +92,7 @@ Stop and ask via AskUserQuestion when:
 - [Requirements overview](docs/requirements/overview.md)
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
+- [Feature 002 — Vercel skeleton (M1)](docs/requirements/feature-002-vercel-skeleton.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -99,3 +104,4 @@ Stop and ask via AskUserQuestion when:
 ## Self-improvement log
 
 - [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap retrospective; recorded the nc workaround on Windows and the eslint-plugin-react limitation.
+- [002-vercel-skeleton](docs/retrospectives/002-vercel-skeleton.md) — M1; web-standard `api/` handlers (no `@vercel/node` dep), vitest root moved to repo root, fixed deprecated `baseUrl` build break.
