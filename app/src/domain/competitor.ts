@@ -26,7 +26,7 @@ export type FeatureArea = z.infer<typeof featureAreaSchema>;
 export const FEATURE_AREA_LABELS: Record<FeatureArea, string> = {
   'realtime-dashboards': 'Real-time KPI dashboards',
   'data-integration': 'Machine & data-source integration',
-  'trend-analytics': 'Trend analysis & data export',
+  'trend-analytics': 'Trend analysis',
   'quality-analytics': 'Process & quality analytics',
   alerting: 'Alerting & notifications',
   reporting: 'Reporting & export',
@@ -34,20 +34,22 @@ export const FEATURE_AREA_LABELS: Record<FeatureArea, string> = {
 
 /**
  * Every feature area must carry a rating — built explicitly (rather than a
- * partial record) so a missing area fails validation.
+ * partial record) so a missing area fails validation. `strictObject` also
+ * rejects unknown areas, so exhaustiveness is enforced in both directions
+ * (important once this schema validates LLM output in M5).
  */
 const featuresShape = Object.fromEntries(
   FEATURE_AREAS.map((area) => [area, ratingSchema]),
 ) as Record<FeatureArea, typeof ratingSchema>;
-export const featuresSchema = z.object(featuresShape);
+export const featuresSchema = z.strictObject(featuresShape);
 
-export const competitorSchema = z.object({
+export const competitorSchema = z.strictObject({
   id: z.string().min(1),
   name: z.string().min(1),
   website: z.url(),
   description: z.string(),
   features: featuresSchema,
-  updatedAt: z.string().min(1),
+  updatedAt: z.iso.datetime(),
 });
 
 export type Competitor = z.infer<typeof competitorSchema>;

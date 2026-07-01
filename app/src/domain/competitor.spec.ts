@@ -23,6 +23,19 @@ describe('parseCompetitor', () => {
     delete partialFeatures.alerting;
     expect(() => parseCompetitor({ ...valid, features: partialFeatures })).toThrow();
   });
+
+  it('rejects an unknown feature area', () => {
+    const bad = { ...valid, features: { ...valid.features, 'made-up-area': 'strong' } };
+    expect(() => parseCompetitor(bad)).toThrow();
+  });
+
+  it('rejects an unknown top-level field', () => {
+    expect(() => parseCompetitor({ ...valid, rank: 1 })).toThrow();
+  });
+
+  it('rejects a non-ISO updatedAt', () => {
+    expect(() => parseCompetitor({ ...valid, updatedAt: 'yesterday' })).toThrow();
+  });
 });
 
 describe('MOCK_COMPETITORS', () => {

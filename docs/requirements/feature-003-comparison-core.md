@@ -14,7 +14,7 @@ The comparison compares competitors across six broad functional areas of an indu
 |---|---|
 | `realtime-dashboards` | Real-time KPI dashboards |
 | `data-integration` | Machine & data-source integration |
-| `trend-analytics` | Trend analysis & data export |
+| `trend-analytics` | Trend analysis |
 | `quality-analytics` | Process & quality analytics |
 | `alerting` | Alerting & notifications |
 | `reporting` | Reporting & export |
@@ -26,7 +26,7 @@ The set is fixed here and may be extended later via an ADR.
 - GIVEN a valid mock competitor
   WHEN passed to `parseCompetitor`
   THEN it is returned unchanged and typed as `Competitor`.
-- GIVEN a competitor with an invalid rating value, a non-URL `website`, or a missing feature area
+- GIVEN a competitor with an invalid rating value, a non-URL `website`, a non-ISO `updatedAt`, a missing or unknown feature area, or any unknown top-level field
   WHEN passed to `parseCompetitor`
   THEN validation throws.
 - GIVEN any rating (`strong` / `adequate` / `weak` / `absent`)
