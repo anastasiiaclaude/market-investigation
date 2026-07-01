@@ -234,3 +234,147 @@ code {
   align-items: center;
   gap: 6px;
 }
+
+/* ── M4 toolbar: search + feature filter + view toggle ───────────────── */
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  font: inherit;
+  font-size: 15px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.search:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.toggle-btn {
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  border: 0;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.toggle-btn + .toggle-btn {
+  border-left: 1px solid var(--border);
+}
+.toggle-btn.is-active {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.area-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.chip.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── M4 card view ────────────────────────────────────────────────────── */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--bg);
+}
+.card.home-card {
+  border-color: var(--accent-border);
+  background: var(--home-bg);
+}
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.card-header a {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-all;
+}
+.card-description {
+  margin: 10px 0 14px;
+  font-size: 14px;
+}
+.card-features {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-feature {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.card-feature dt {
+  color: var(--text-h);
+}
+.card-feature dd {
+  margin: 0;
+  white-space: nowrap;
+}
+.card-feature.is-gap {
+  background: var(--gap-bg);
+  box-shadow: inset 0 0 0 1px var(--gap);
+}
+
+.empty-note {
+  margin: 16px 0 0;
+  color: var(--text);
+  font-style: italic;
+}
