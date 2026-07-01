@@ -55,6 +55,12 @@ Backend lives in `api/` (web-standard handlers, pure logic in `api/_lib/`).
 Zod schema + `Rating`/feature-area enums (`competitor.ts`) and the pure
 `ratingToCell` presentation mapping (`rating-cell.ts`); mock dataset in
 `app/src/mocks/competitors.ts`. Zod added as a dependency (ADR 006).
+**M3 done:** comparison table UI — `domain/gap.ts` (`isGap`, `buildComparison`,
+pure + tested) flags VA-INDIGO cells that are weak/absent while a competitor is
+stronger (FR-4); `components/CompetitorTable.tsx` renders the matrix with
+VA-INDIGO (a separate `VA_INDIGO` mock record) pinned as a highlighted first
+column; `App.tsx` is now the dashboard. `.rating-*` colours + table styling in
+`index.css`; `.claude/launch.json` added for the preview server.
 
 ## Working agreement
 
@@ -98,6 +104,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
 - [Feature 002 — Vercel skeleton (M1)](docs/requirements/feature-002-vercel-skeleton.md)
 - [Feature 003 — Comparison core (M2)](docs/requirements/feature-003-comparison-core.md)
+- [Feature 004 — Comparison table + gap highlighting (M3)](docs/requirements/feature-004-comparison-table.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -112,3 +119,4 @@ Stop and ask via AskUserQuestion when:
 - [001-hello-world](docs/retrospectives/001-hello-world.md) — bootstrap retrospective; recorded the nc workaround on Windows and the eslint-plugin-react limitation.
 - [002-vercel-skeleton](docs/retrospectives/002-vercel-skeleton.md) — M1; web-standard `api/` handlers (no `@vercel/node` dep), vitest root moved to repo root, fixed deprecated `baseUrl` build break.
 - [003-comparison-core](docs/retrospectives/003-comparison-core.md) — M2; Zod 4 top-level formats (`z.url()`), exhaustive feature-record via explicit `z.object`, `erasableSyntaxOnly` rules out enums (used `as const` unions).
+- [004-comparison-table](docs/retrospectives/004-comparison-table.md) — M3; relative gap rule (weak/absent AND a competitor stronger), VA-INDIGO as a separate `VA_INDIGO` mock (no `isHome` flag), pure `gap.ts` keeps node-only tests (no jsdom dep), real `.rating-*` CSS + `.claude/launch.json`.

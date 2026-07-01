@@ -1,6 +1,30 @@
 import type { Competitor } from '../domain/competitor';
 
 /**
+ * VA-INDIGO — the VON ARDENNE analysis suite the comparison is centred on
+ * (the "home" product). Kept separate from the rival list so gap detection
+ * reads as "VA-INDIGO vs. competitors". Ratings are illustrative, not
+ * researched; the weak `alerting` and absent `reporting` areas exist to
+ * demonstrate gap highlighting (M3, FR-4).
+ */
+export const VA_INDIGO: Competitor = {
+  id: 'va-indigo',
+  name: 'VA-INDIGO Analysis Suite',
+  website: 'https://www.vonardenne.biz/',
+  description:
+    'VON ARDENNE analysis suite for monitoring and optimizing vacuum-coating production lines.',
+  features: {
+    'realtime-dashboards': 'strong',
+    'data-integration': 'adequate',
+    'trend-analytics': 'strong',
+    'quality-analytics': 'weak',
+    alerting: 'weak',
+    reporting: 'absent',
+  },
+  updatedAt: '2026-06-01T00:00:00.000Z',
+};
+
+/**
  * Mock competitor dataset for UI/logic development before the research
  * backend (M5) and DB (M6) land. Ratings are illustrative, not researched.
  */
