@@ -83,4 +83,9 @@ describe('buildComparison', () => {
     const alerting = model.rows.find((r) => r.area === 'alerting')!;
     expect(alerting.competitors.map((c) => c.rating)).toEqual(['strong', 'weak']);
   });
+
+  it('restricts rows to the given area subset, preserving its order', () => {
+    const model = buildComparison(home, [strongRival], ['alerting', 'reporting']);
+    expect(model.rows.map((r) => r.area)).toEqual(['alerting', 'reporting']);
+  });
 });

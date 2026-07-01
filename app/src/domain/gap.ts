@@ -44,14 +44,17 @@ export interface ComparisonModel {
 
 /**
  * Shape the home product and competitors into a render-ready comparison model:
- * one row per feature area (canonical `FEATURE_AREAS` order), each carrying the
- * presentation cells plus the home gap flag. Pure — the component only renders.
+ * one row per feature area, each carrying the presentation cells plus the home
+ * gap flag. Pure — the component only renders. `areas` defaults to the full
+ * canonical `FEATURE_AREAS`; pass a subset (from the feature filter, M4) to
+ * narrow the rows while keeping their canonical order.
  */
 export function buildComparison(
   home: Competitor,
   competitors: Competitor[],
+  areas: readonly FeatureArea[] = FEATURE_AREAS,
 ): ComparisonModel {
-  const rows: ComparisonRow[] = FEATURE_AREAS.map((area) => ({
+  const rows: ComparisonRow[] = areas.map((area) => ({
     area,
     label: FEATURE_AREA_LABELS[area],
     home: {

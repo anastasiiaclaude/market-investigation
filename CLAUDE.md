@@ -61,6 +61,15 @@ stronger (FR-4); `components/CompetitorTable.tsx` renders the matrix with
 VA-INDIGO (a separate `VA_INDIGO` mock record) pinned as a highlighted first
 column; `App.tsx` is now the dashboard. `.rating-*` colours + table styling in
 `index.css`; `.claude/launch.json` added for the preview server.
+**M4 done:** cards + view toggle + filter/search (FR-2, FR-3, FR-7). Pure modules
+`domain/filter.ts` (`filterCompetitors`, `visibleAreas`) + `domain/view-preference.ts`
+(`parseView`/`loadView`/`saveView`, persisted to localStorage), both node-tested.
+`buildComparison` gained an optional `areas` subset so the feature filter narrows
+rows through the same model. Components: `CompetitorCard`, `CompetitorCards`,
+`ViewToggle`, `Toolbar`; `hooks/useViewPreference` wires persistence to React.
+`App.tsx` orchestrates filter state + view; VA-INDIGO always pinned. Added a
+`preview` config (port 4173) to `.claude/launch.json` for browser verification
+when `:5173` is taken.
 
 ## Working agreement
 
@@ -105,6 +114,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 002 — Vercel skeleton (M1)](docs/requirements/feature-002-vercel-skeleton.md)
 - [Feature 003 — Comparison core (M2)](docs/requirements/feature-003-comparison-core.md)
 - [Feature 004 — Comparison table + gap highlighting (M3)](docs/requirements/feature-004-comparison-table.md)
+- [Feature 005 — Cards + view toggle + filter/search (M4)](docs/requirements/feature-005-cards-toggle-filter.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -120,3 +130,4 @@ Stop and ask via AskUserQuestion when:
 - [002-vercel-skeleton](docs/retrospectives/002-vercel-skeleton.md) — M1; web-standard `api/` handlers (no `@vercel/node` dep), vitest root moved to repo root, fixed deprecated `baseUrl` build break.
 - [003-comparison-core](docs/retrospectives/003-comparison-core.md) — M2; Zod 4 top-level formats (`z.url()`), exhaustive feature-record via explicit `z.object`, `erasableSyntaxOnly` rules out enums (used `as const` unions).
 - [004-comparison-table](docs/retrospectives/004-comparison-table.md) — M3; relative gap rule (weak/absent AND a competitor stronger), VA-INDIGO as a separate `VA_INDIGO` mock (no `isHome` flag), pure `gap.ts` keeps node-only tests (no jsdom dep), real `.rating-*` CSS + `.claude/launch.json`.
+- [005-cards-toggle-filter](docs/retrospectives/005-cards-toggle-filter.md) — M4; pure `filter.ts` + `view-preference.ts` (node-tested, no jsdom), `buildComparison` optional `areas` subset, card gaps derived from the same model, `preview` launch config (4173) as the `:5173`-taken workaround.

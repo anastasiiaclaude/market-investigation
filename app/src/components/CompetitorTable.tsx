@@ -1,10 +1,12 @@
-import type { Competitor } from '../domain/competitor';
+import type { Competitor, FeatureArea } from '../domain/competitor';
 import { buildComparison } from '../domain/gap';
 import type { RatingCell } from '../domain/rating-cell';
 
 interface CompetitorTableProps {
   home: Competitor;
   competitors: Competitor[];
+  /** Feature areas (rows) to show, already filtered + ordered. */
+  areas: FeatureArea[];
 }
 
 /** A rating cell. `home` styles the pinned column; `gap` flags a home shortfall. */
@@ -40,8 +42,8 @@ function Cell({
  * (the home product) is pinned as the first, highlighted column; its gaps vs.
  * competitors are flagged. Pure rendering — the model is built in `domain/gap`.
  */
-export default function CompetitorTable({ home, competitors }: CompetitorTableProps) {
-  const model = buildComparison(home, competitors);
+export default function CompetitorTable({ home, competitors, areas }: CompetitorTableProps) {
+  const model = buildComparison(home, competitors, areas);
 
   return (
     <table className="comparison">
