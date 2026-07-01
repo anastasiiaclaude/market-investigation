@@ -109,3 +109,128 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ── M3 comparison table ─────────────────────────────────────────────── */
+
+:root {
+  --rating-strong: #1a7f37;
+  --rating-adequate: #7a6a00;
+  --rating-weak: #b7791f;
+  --rating-absent: #a1a1aa;
+  --gap: #d1242f;
+  --gap-bg: rgba(209, 36, 47, 0.1);
+  --home-bg: var(--accent-bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rating-strong: #3fb950;
+    --rating-adequate: #d6c045;
+    --rating-weak: #e3a008;
+    --rating-absent: #8b8b93;
+    --gap: #ff7b72;
+    --gap-bg: rgba(255, 123, 114, 0.15);
+  }
+}
+
+.dashboard {
+  text-align: left;
+  padding: 24px clamp(16px, 4vw, 48px) 48px;
+  overflow-x: auto;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+.dashboard-header p {
+  max-width: 62ch;
+}
+
+.comparison {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 15px;
+}
+
+.comparison th,
+.comparison td {
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.comparison thead th {
+  vertical-align: bottom;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* Feature-area column: left-aligned row headers + the empty corner. */
+.comparison tbody th[scope='row'],
+.comparison .corner {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+/* Pinned, highlighted home (VA-INDIGO) column. */
+.comparison th.home-col,
+.comparison td.cell.home-col {
+  background: var(--home-bg);
+  border-inline-color: var(--accent-border);
+}
+.home-badge {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cell-symbol {
+  font-size: 18px;
+  line-height: 1;
+}
+.cell.rating-strong .cell-symbol,
+.cell-symbol.rating-strong {
+  color: var(--rating-strong);
+}
+.cell.rating-adequate .cell-symbol,
+.cell-symbol.rating-adequate {
+  color: var(--rating-adequate);
+}
+.cell.rating-weak .cell-symbol,
+.cell-symbol.rating-weak {
+  color: var(--rating-weak);
+}
+.cell.rating-absent .cell-symbol,
+.cell-symbol.rating-absent {
+  color: var(--rating-absent);
+}
+
+/* Flagged gap: VA-INDIGO weak/absent while a competitor is stronger. */
+.comparison td.cell.is-gap {
+  background: var(--gap-bg);
+  box-shadow: inset 0 0 0 2px var(--gap);
+}
+.gap-flag {
+  margin-left: 4px;
+  color: var(--gap);
+}
+
+.legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
