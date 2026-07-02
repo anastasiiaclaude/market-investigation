@@ -70,6 +70,16 @@ rows through the same model. Components: `CompetitorCard`, `CompetitorCards`,
 `App.tsx` orchestrates filter state + view; VA-INDIGO always pinned. Added a
 `preview` config (port 4173) to `.claude/launch.json` for browser verification
 when `:5173` is taken.
+**M5 done:** research endpoint `POST /api/research` (FR-8, FR-9). Fetches a
+competitor URL, extracts clean text (dependency-free pure `api/_lib/extract.ts`,
+ADR 005), summarizes + rates it via OpenRouter (`api/_lib/openrouter.ts` thin
+fetch wrapper + pure `api/_lib/summarize.ts`, ADR 004), returns a schema-valid
+`Competitor` (unpersisted). Orchestration in `api/_lib/research.ts`; thin handler
+in `api/research.ts`. Model-output validation + `toCompetitor` live in
+`app/src/domain/research.ts` so **all Zod stays in `app/src`** (backend imports it
+transitively; `api/` stays dependency-free). Guardrails: 400/500/502; live-model
+check is deploy-time (`api/*` isn't served by vite dev). Added `api/env.d.ts`
+(ambient `process`) since `api/` reads `process.env` without `@types/node`.
 
 ## Working agreement
 
@@ -115,6 +125,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 003 — Comparison core (M2)](docs/requirements/feature-003-comparison-core.md)
 - [Feature 004 — Comparison table + gap highlighting (M3)](docs/requirements/feature-004-comparison-table.md)
 - [Feature 005 — Cards + view toggle + filter/search (M4)](docs/requirements/feature-005-cards-toggle-filter.md)
+- [Feature 006 — Research endpoint: extraction + summarization (M5)](docs/requirements/feature-006-research-endpoint.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -131,3 +142,4 @@ Stop and ask via AskUserQuestion when:
 - [003-comparison-core](docs/retrospectives/003-comparison-core.md) — M2; Zod 4 top-level formats (`z.url()`), exhaustive feature-record via explicit `z.object`, `erasableSyntaxOnly` rules out enums (used `as const` unions).
 - [004-comparison-table](docs/retrospectives/004-comparison-table.md) — M3; relative gap rule (weak/absent AND a competitor stronger), VA-INDIGO as a separate `VA_INDIGO` mock (no `isHome` flag), pure `gap.ts` keeps node-only tests (no jsdom dep), real `.rating-*` CSS + `.claude/launch.json`.
 - [005-cards-toggle-filter](docs/retrospectives/005-cards-toggle-filter.md) — M4; pure `filter.ts` + `view-preference.ts` (node-tested, no jsdom), `buildComparison` optional `areas` subset, card gaps derived from the same model, `preview` launch config (4173) as the `:5173`-taken workaround.
+- [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
