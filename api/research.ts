@@ -1,5 +1,6 @@
 import { runResearch, ResearchError } from './_lib/research';
 import { DEFAULT_MODEL } from './_lib/openrouter';
+import { assertPublicUrl, BlockedUrlError } from './_lib/url-guard';
 
 // Vercel Function — `POST /api/research`. Web-standard signature (no runtime
 // dependency), mirroring api/health.ts. Fetches + extracts a competitor page and
@@ -31,6 +32,16 @@ export async function POST(req: Request): Promise<Response> {
   const url = (body as { url?: unknown } | null)?.url;
   if (!isValidHttpUrl(url)) {
     return error('Body must include a valid http(s) "url"', 400);
+  }
+
+  // SSRF guard (issue #15): reject internal/private hosts before any fetch.
+  try {
+    assertPublicUrl(url);
+  } catch (cause) {
+    if (cause instanceof BlockedUrlError) {
+      return error(cause.message, 400);
+    }
+    throw cause;
   }
 
   const apiKey = process.env.OPENROUTER_API_KEY;

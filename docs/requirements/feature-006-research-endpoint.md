@@ -36,6 +36,13 @@ so I can add a researched competitor to the comparison without hand-scoring it.
 - **Basic guardrails (M8 owns full robustness).** Validate the request,
   surface fetch/model/validation failures as clear HTTP errors. Empty/JS-page
   detection, size/rate limits, and retries are deferred to M8.
+- **SSRF guard (issue #15).** Because the endpoint fetches a user-supplied URL
+  server-side and (per constraints) is unauthenticated, a pure `url-guard`
+  rejects loopback / link-local / private (RFC1918 / ULA) / cloud-metadata hosts
+  with `400` before any network call. `new URL()` host normalization covers
+  decimal/hex-encoded IPv4. Residual, still tracked in #15: no DNS resolution
+  (DNS rebinding) and no redirect re-validation yet — both need a lookup /
+  manual redirect handling and are deferred.
 
 ## API contract
 
@@ -66,7 +73,8 @@ Success — `200`, a `Competitor` (validates against `competitorSchema`):
 ```
 
 Errors (JSON `{ "error": string }`):
-- `400` — body is not JSON, missing `url`, or `url` is not a valid URL.
+- `400` — body is not JSON, missing `url`, `url` is not a valid URL, or `url`
+  targets a non-public host (SSRF guard — see below).
 - `405` — method other than `POST`.
 - `500` — `OPENROUTER_API_KEY` is not configured.
 - `502` — fetching the page failed, OpenRouter failed, or the model's reply
