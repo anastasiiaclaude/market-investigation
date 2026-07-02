@@ -65,6 +65,7 @@ function isBlockedIpv6(addr: string): boolean {
 export function isBlockedHost(host: string): boolean {
   let h = host.trim().toLowerCase();
   if (h.startsWith('[') && h.endsWith(']')) h = h.slice(1, -1); // strip IPv6 brackets
+  h = h.replace(/\.+$/, ''); // drop the FQDN root dot: `localhost.` resolves like `localhost`
   if (BLOCKED_HOSTNAMES.has(h) || h.endsWith('.localhost')) return true;
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return isBlockedIpv4(h);
   if (h.includes(':')) return isBlockedIpv6(h);

@@ -10,6 +10,11 @@ describe('isBlockedHost', () => {
     expect(isBlockedHost('::1')).toBe(true);
   });
 
+  it('blocks the trailing-dot FQDN form (URL keeps the root dot)', () => {
+    expect(isBlockedHost('localhost.')).toBe(true);
+    expect(isBlockedHost('foo.localhost.')).toBe(true);
+  });
+
   it('blocks the cloud-metadata and link-local range', () => {
     expect(isBlockedHost('169.254.169.254')).toBe(true);
     expect(isBlockedHost('169.254.0.1')).toBe(true);
@@ -47,6 +52,10 @@ describe('assertPublicUrl', () => {
   it('throws BlockedUrlError for loopback', () => {
     expect(() => assertPublicUrl('http://localhost:6379/')).toThrow(BlockedUrlError);
     expect(() => assertPublicUrl('http://127.0.0.1/')).toThrow(BlockedUrlError);
+  });
+
+  it('throws for the trailing-dot loopback form', () => {
+    expect(() => assertPublicUrl('http://localhost./')).toThrow(BlockedUrlError);
   });
 
   it('throws BlockedUrlError for the metadata endpoint', () => {
