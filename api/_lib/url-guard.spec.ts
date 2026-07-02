@@ -35,6 +35,23 @@ describe('isBlockedHost', () => {
     expect(isBlockedHost('[::ffff:10.0.0.1]')).toBe(true);
   });
 
+  it('blocks IPv4-compatible IPv6 with a private embedded address', () => {
+    // deprecated ::a.b.c.d form; new URL() normalizes to ::7f00:1 / ::a00:1
+    expect(isBlockedHost('[::7f00:1]')).toBe(true); // 127.0.0.1
+    expect(isBlockedHost('[::a00:1]')).toBe(true); // 10.0.0.1
+    expect(isBlockedHost('[::c0a8:1]')).toBe(true); // 192.168.0.1
+  });
+
+  it('blocks NAT64 (64:ff9b::/96) tunnelling a private address', () => {
+    expect(isBlockedHost('[64:ff9b::7f00:1]')).toBe(true); // 127.0.0.1
+    expect(isBlockedHost('[64:ff9b::a00:1]')).toBe(true); // 10.0.0.1
+  });
+
+  it('does not block NAT64 / compatible forms carrying a public address', () => {
+    expect(isBlockedHost('[64:ff9b::808:808]')).toBe(false); // 8.8.8.8
+    expect(isBlockedHost('[::808:808]')).toBe(false); // 8.8.8.8
+  });
+
   it('does not block ordinary public hosts', () => {
     expect(isBlockedHost('www.seeq.com')).toBe(false);
     expect(isBlockedHost('8.8.8.8')).toBe(false);
@@ -62,6 +79,11 @@ describe('assertPublicUrl', () => {
     expect(() => assertPublicUrl('http://169.254.169.254/latest/meta-data/')).toThrow(
       BlockedUrlError,
     );
+  });
+
+  it('catches IPv4-compatible and NAT64 loopback via URL normalization', () => {
+    expect(() => assertPublicUrl('http://[::127.0.0.1]/')).toThrow(BlockedUrlError);
+    expect(() => assertPublicUrl('http://[64:ff9b::127.0.0.1]/')).toThrow(BlockedUrlError);
   });
 
   it('catches decimal/hex-encoded loopback (URL normalizes the host)', () => {

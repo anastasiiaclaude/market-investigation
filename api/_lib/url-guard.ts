@@ -40,23 +40,35 @@ function isBlockedIpv4(ip: string): boolean {
   return false;
 }
 
+/** Decode a "hi:lo" hextet pair (e.g. "7f00","1") into dotted IPv4. */
+function hextetsToIpv4(hiHex: string, loHex: string): string {
+  const hi = parseInt(hiHex, 16);
+  const lo = parseInt(loHex, 16);
+  return `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+}
+
+/**
+ * Prefixes whose low 32 bits carry an embedded IPv4 that must be classified,
+ * so a private target tunnelled through them is caught (defense-in-depth):
+ *   `::ffff:`   IPv4-mapped
+ *   `::`        IPv4-compatible (deprecated) — normalized `::7f00:1` etc.
+ *   `64:ff9b::` NAT64 well-known prefix (/96)
+ * Ordered most-specific first so `::ffff:` wins over the bare `::`.
+ */
+const EMBEDDED_IPV4_PREFIXES = ['::ffff:', '64:ff9b::', '::'];
+
 function isBlockedIpv6(addr: string): boolean {
   const h = addr.toLowerCase();
   if (h === '::' || h === '::1') return true; // unspecified / loopback
   if (/^f[cd]/.test(h)) return true; // fc00::/7 unique-local
   if (/^fe[89ab]/.test(h)) return true; // fe80::/10 link-local
 
-  // IPv4-mapped ::ffff:a.b.c.d (dotted) — classify the embedded IPv4.
-  const dotted = h.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-  if (dotted && dotted[1]) return isBlockedIpv4(dotted[1]);
-
-  // IPv4-mapped in hex form ::ffff:7f00:1 — decode the two hextets to IPv4.
-  const hex = h.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
-  if (hex && hex[1] && hex[2]) {
-    const hi = parseInt(hex[1], 16);
-    const lo = parseInt(hex[2], 16);
-    const ipv4 = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
-    return isBlockedIpv4(ipv4);
+  for (const prefix of EMBEDDED_IPV4_PREFIXES) {
+    if (!h.startsWith(prefix)) continue;
+    const tail = h.slice(prefix.length);
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(tail)) return isBlockedIpv4(tail); // dotted
+    const hex = tail.match(/^([0-9a-f]{1,4}):([0-9a-f]{1,4})$/); // XXXX:YYYY
+    if (hex && hex[1] && hex[2]) return isBlockedIpv4(hextetsToIpv4(hex[1], hex[2]));
   }
   return false;
 }
