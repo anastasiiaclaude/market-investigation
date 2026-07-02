@@ -80,6 +80,9 @@ in `api/research.ts`. Model-output validation + `toCompetitor` live in
 transitively; `api/` stays dependency-free). Guardrails: 400/500/502; live-model
 check is deploy-time (`api/*` isn't served by vite dev). Added `api/env.d.ts`
 (ambient `process`) since `api/` reads `process.env` without `@types/node`.
+SSRF guard (pure `api/_lib/url-guard.ts`, issue #15): the handler rejects
+loopback/link-local/private/metadata hosts with `400` before any fetch. Residual
+(tracked in #15): no DNS resolution or redirect re-check yet.
 
 ## Working agreement
 

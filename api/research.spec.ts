@@ -69,6 +69,21 @@ describe('POST /api/research', () => {
     expect((await POST(post({ url: 'ftp://example.com' }))).status).toBe(400);
   });
 
+  it('returns 400 for internal/private hosts and never fetches (SSRF guard)', async () => {
+    const fetchImpl = stubFetch();
+    vi.stubEnv('OPENROUTER_API_KEY', 'sk-test');
+    for (const url of [
+      'http://169.254.169.254/latest/meta-data/',
+      'http://localhost:6379/',
+      'http://127.0.0.1/',
+      'http://10.0.0.1/',
+      'http://2130706433/',
+    ]) {
+      expect((await POST(post({ url }))).status).toBe(400);
+    }
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it('returns 500 when OPENROUTER_API_KEY is not configured', async () => {
     stubFetch();
     vi.stubEnv('OPENROUTER_API_KEY', '');
