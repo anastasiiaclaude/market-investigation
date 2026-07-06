@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { competitorSchema, featuresSchema, type Competitor } from './competitor';
+import { websiteKey } from './identity';
 
 /**
  * What the LLM is asked to produce for a researched competitor: a name, a short
@@ -24,22 +25,15 @@ export function parseResearchResult(input: unknown): ResearchResult {
   return researchResultSchema.parse(input);
 }
 
-/** URL-safe slug from a display name; falls back so the id is never empty. */
-function slugify(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return slug.length > 0 ? slug : 'competitor';
-}
-
 /**
  * Assemble a schema-valid `Competitor` from a researched result plus the posted
- * URL and a timestamp. The `id` is a provisional slug — real id/dedup is M6.
+ * URL and a timestamp. The `id` is the URL-based `websiteKey` (M6, ADR 007): the
+ * DB primary key, the research dedup key, and the REST resource id in one. Stable
+ * across re-research because it derives from the URL, not the (drift-prone) name.
  */
 export function toCompetitor(result: ResearchResult, url: string, now: Date): Competitor {
   return competitorSchema.parse({
-    id: slugify(result.name),
+    id: websiteKey(url),
     name: result.name,
     website: url,
     description: result.description,

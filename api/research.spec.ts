@@ -2,6 +2,17 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { POST } from './research';
 import { OPENROUTER_URL } from './_lib/openrouter';
 
+// The handler now persists via getRepo(); mock the DB client so these node-only
+// tests use an in-memory repo instead of a real Neon connection.
+vi.mock('./_lib/db/client', async () => {
+  const { inMemoryRepo } = await import('./_lib/db/in-memory-repo');
+  const repo = inMemoryRepo();
+  return {
+    getRepo: () => repo,
+    DbNotConfiguredError: class DbNotConfiguredError extends Error {},
+  };
+});
+
 const modelReply = {
   name: 'Seeq',
   description: 'Advanced analytics for time-series process data.',

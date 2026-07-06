@@ -1,6 +1,7 @@
 import { runResearch, ResearchError } from './_lib/research';
 import { DEFAULT_MODEL } from './_lib/openrouter';
 import { assertPublicUrl, BlockedUrlError } from './_lib/url-guard';
+import { getRepo, DbNotConfiguredError } from './_lib/db/client';
 
 // Vercel Function — `POST /api/research`. Web-standard signature (no runtime
 // dependency), mirroring api/health.ts. Fetches + extracts a competitor page and
@@ -50,8 +51,20 @@ export async function POST(req: Request): Promise<Response> {
   }
   const model = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
 
+  // Persistence is part of the M6 contract — the researched competitor is upserted
+  // (dedup by URL id) before it is returned.
+  let repo;
   try {
-    const competitor = await runResearch({ url, apiKey, model });
+    repo = getRepo();
+  } catch (cause) {
+    if (cause instanceof DbNotConfiguredError) {
+      return error(cause.message, 500);
+    }
+    throw cause;
+  }
+
+  try {
+    const competitor = await runResearch({ url, apiKey, model, repo });
     return Response.json(competitor, { status: 200 });
   } catch (cause) {
     if (cause instanceof ResearchError) {

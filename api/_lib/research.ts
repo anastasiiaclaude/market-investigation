@@ -8,6 +8,7 @@ import { buildResearchPrompt, parseResearchReply } from './summarize';
 import { callOpenRouter } from './openrouter';
 import { toCompetitor } from '../../app/src/domain/research';
 import type { Competitor } from '../../app/src/domain/competitor';
+import type { CompetitorRepo } from './db/repository';
 
 /** A pipeline failure with the HTTP status the endpoint should respond with. */
 export class ResearchError extends Error {
@@ -27,6 +28,11 @@ export interface RunResearchOptions {
   fetchImpl?: typeof fetch;
   /** Injectable for tests; defaults to now. */
   now?: Date;
+  /**
+   * When provided, the assembled competitor is upserted (dedup by URL id, M6).
+   * Omitting it yields the unpersisted competitor — used by pure unit tests.
+   */
+  repo?: CompetitorRepo;
 }
 
 export async function runResearch({
@@ -35,6 +41,7 @@ export async function runResearch({
   model,
   fetchImpl = fetch,
   now = new Date(),
+  repo,
 }: RunResearchOptions): Promise<Competitor> {
   let html: string;
   try {
@@ -56,12 +63,22 @@ export async function runResearch({
     throw new ResearchError(`Summarization failed: ${(cause as Error).message}`, 502);
   }
 
+  let competitor: Competitor;
   try {
-    return toCompetitor(parseResearchReply(reply), url, now);
+    competitor = toCompetitor(parseResearchReply(reply), url, now);
   } catch (cause) {
     throw new ResearchError(
       `Model returned unexpected data: ${(cause as Error).message}`,
       502,
     );
+  }
+
+  if (!repo) return competitor;
+
+  // Persist with dedup by URL id (FR-11): a re-run on the same URL updates the row.
+  try {
+    return await repo.upsert(competitor);
+  } catch (cause) {
+    throw new ResearchError(`Failed to persist competitor: ${(cause as Error).message}`, 500);
   }
 }
