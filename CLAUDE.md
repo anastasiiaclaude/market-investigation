@@ -83,6 +83,20 @@ check is deploy-time (`api/*` isn't served by vite dev). Added `api/env.d.ts`
 SSRF guard (pure `api/_lib/url-guard.ts`, issue #15): the handler rejects
 loopback/link-local/private/metadata hosts with `400` before any fetch. Residual
 (tracked in #15): no DNS resolution or redirect re-check yet.
+**M6 Part A done (backend, issue #6):** Postgres (Neon) + Drizzle persistence +
+dedup (FR-10, FR-11). `api/` is now its own sub-package (`api/package.json`;
+`drizzle-orm` + `@neondatabase/serverless` — the non-deprecated Neon driver
+replacing `@vercel/postgres`; ADR 007). URL-based identity: `websiteKey` (pure
+`app/src/domain/identity.ts`) is the DB primary key = research dedup key = REST
+id; `toCompetitor` now sets `id = websiteKey(url)` (was a name slug). DB access
+is behind a `CompetitorRepo` seam (`api/_lib/db/`): `drizzleRepo` (live,
+deploy-verified) + `inMemoryRepo` (node tests). `POST /api/research` upserts by
+URL id, so re-runs never duplicate. CRUD via `/api/competitors` (by-id ops use
+`?id=` since URL-key ids contain slashes). Migration in `api/drizzle/`
+(`drizzle-kit generate/migrate`); idempotent seed (`_scripts/seed.ts`,
+`npm --prefix api run db:seed`) loads mock rivals re-keyed by URL. `.vercelignore`
++ `installCommand` updated so Vercel installs `api/` deps and skips tooling.
+**Part B pending:** wire `App.tsx` to fetch `GET /api/competitors` (read-path).
 
 ## Working agreement
 
@@ -129,12 +143,14 @@ Stop and ask via AskUserQuestion when:
 - [Feature 004 — Comparison table + gap highlighting (M3)](docs/requirements/feature-004-comparison-table.md)
 - [Feature 005 — Cards + view toggle + filter/search (M4)](docs/requirements/feature-005-cards-toggle-filter.md)
 - [Feature 006 — Research endpoint: extraction + summarization (M5)](docs/requirements/feature-006-research-endpoint.md)
+- [Feature 007 — Persistence + dedup (M6)](docs/requirements/feature-007-persistence.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
 - [ADR 004 — OpenRouter summarization](docs/decisions/004-openrouter-summarization.md)
 - [ADR 005 — Competitor extraction](docs/decisions/005-competitor-extraction.md)
 - [ADR 006 — Zod validation](docs/decisions/006-zod-validation.md)
+- [ADR 007 — `api/` sub-package; Drizzle + Neon; URL identity](docs/decisions/007-api-subpackage-drizzle.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
@@ -146,3 +162,4 @@ Stop and ask via AskUserQuestion when:
 - [004-comparison-table](docs/retrospectives/004-comparison-table.md) — M3; relative gap rule (weak/absent AND a competitor stronger), VA-INDIGO as a separate `VA_INDIGO` mock (no `isHome` flag), pure `gap.ts` keeps node-only tests (no jsdom dep), real `.rating-*` CSS + `.claude/launch.json`.
 - [005-cards-toggle-filter](docs/retrospectives/005-cards-toggle-filter.md) — M4; pure `filter.ts` + `view-preference.ts` (node-tested, no jsdom), `buildComparison` optional `areas` subset, card gaps derived from the same model, `preview` launch config (4173) as the `:5173`-taken workaround.
 - [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
+- [007-persistence](docs/retrospectives/007-persistence.md) — M6 Part A; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip, live DB path deploy-verified only.
