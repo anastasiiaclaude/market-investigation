@@ -47,14 +47,6 @@ describe('inMemoryRepo (CompetitorRepo contract)', () => {
     expect(all[0]?.description).toBe('Updated summary.');
   });
 
-  it('update merges a patch, keeps id immutable, and 404s (null) when absent', async () => {
-    const repo = inMemoryRepo([seeq]);
-    const updated = await repo.update('seeq.com', { name: 'Seeq Inc.', id: 'hacked' } as Partial<Competitor>);
-    expect(updated?.name).toBe('Seeq Inc.');
-    expect(updated?.id).toBe('seeq.com'); // id cannot be changed via update
-    expect(await repo.update('missing', { name: 'x' })).toBeNull();
-  });
-
   it('remove deletes and reports whether a row matched', async () => {
     const repo = inMemoryRepo([seeq]);
     expect(await repo.remove('seeq.com')).toBe(true);

@@ -25,14 +25,6 @@ export function inMemoryRepo(seed: Competitor[] = []): CompetitorRepo {
       return valid;
     },
 
-    async update(id, patch) {
-      const existing = store.get(id);
-      if (!existing) return null;
-      const merged = parseCompetitor({ ...existing, ...patch, id });
-      store.set(id, merged);
-      return merged;
-    },
-
     async remove(id) {
       return store.delete(id);
     },

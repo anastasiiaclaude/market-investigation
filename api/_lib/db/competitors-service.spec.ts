@@ -70,6 +70,32 @@ describe('competitors-service', () => {
     expect((await updateCompetitor(repo, 'seeq.com', 'nope')).status).toBe(400);
   });
 
+  it('create derives the id from the website, ignoring a client-supplied id', async () => {
+    const repo = inMemoryRepo();
+    const res = await createCompetitor(repo, { ...seeq, id: 'client-chosen' });
+    expect(res.status).toBe(201);
+    expect((res.body as Competitor).id).toBe('seeq.com');
+    expect(await repo.get('client-chosen')).toBeNull();
+  });
+
+  it('update ignores an id in the patch — identity is immutable', async () => {
+    const repo = inMemoryRepo([seeq]);
+    const res = await updateCompetitor(repo, 'seeq.com', {
+      id: 'hacked',
+      name: 'Seeq Inc.',
+    } as Partial<Competitor>);
+    expect(res.status).toBe(200);
+    expect((res.body as Competitor).id).toBe('seeq.com');
+    expect(await repo.get('hacked')).toBeNull();
+  });
+
+  it('update rejects a website change that would alter the id (dedup invariant)', async () => {
+    const repo = inMemoryRepo([seeq]);
+    const res = await updateCompetitor(repo, 'seeq.com', { website: 'https://other.example.com/' });
+    expect(res.status).toBe(400);
+    expect((await repo.get('seeq.com'))?.website).toBe(seeq.website); // unchanged
+  });
+
   it('delete removes the record and returns 204', async () => {
     const repo = inMemoryRepo([seeq]);
     const res = await deleteCompetitor(repo, 'seeq.com');
