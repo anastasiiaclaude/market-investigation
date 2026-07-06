@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { runResearch, ResearchError } from './research';
 import { OPENROUTER_URL } from './openrouter';
+import { inMemoryRepo } from './db/in-memory-repo';
 
 const modelReply = {
   name: 'Seeq',
@@ -54,7 +55,7 @@ describe('runResearch', () => {
     expect(competitor.description).toBe(modelReply.description);
     expect(competitor.features).toEqual(modelReply.features);
     expect(competitor.updatedAt).toBe('2026-07-02T10:00:00.000Z');
-    expect(competitor.id).toBe('seeq');
+    expect(competitor.id).toBe('seeq.com'); // URL-based identity (M6, ADR 007)
   });
 
   it('throws ResearchError(502) when the page fetch is not ok', async () => {
@@ -75,5 +76,28 @@ describe('runResearch', () => {
       completion: { choices: [{ message: { content: '{"name":"x"}' } }] },
     });
     await expect(runResearch({ ...base, fetchImpl })).rejects.toMatchObject({ status: 502 });
+  });
+
+  it('persists via the repo and returns the stored competitor when a repo is given', async () => {
+    const repo = inMemoryRepo();
+    const competitor = await runResearch({ ...base, fetchImpl: makeFetch({}), repo });
+    expect(await repo.get(competitor.id)).toEqual(competitor);
+  });
+
+  it('dedupes on re-run — two researches of the same URL leave one record (FR-11)', async () => {
+    const repo = inMemoryRepo();
+    await runResearch({ ...base, fetchImpl: makeFetch({}), repo });
+    // Same URL, but the model returns a differently-named result the second time.
+    const renamed = { ...modelReply, name: 'Seeq Inc.', description: 'Updated.' };
+    await runResearch({
+      ...base,
+      fetchImpl: makeFetch({ completion: { choices: [{ message: { content: JSON.stringify(renamed) } }] } }),
+      repo,
+    });
+
+    const all = await repo.list();
+    expect(all).toHaveLength(1);
+    expect(all[0]?.name).toBe('Seeq Inc.'); // the second run updated the first in place
+    expect(all[0]?.id).toBe('seeq.com'); // identity stayed the URL key
   });
 });

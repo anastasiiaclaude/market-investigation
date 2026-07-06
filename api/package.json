@@ -1,0 +1,21 @@
+{
+  "name": "@market-investigation/api",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless backend — persistence layer (ADR 003 + ADR 007). Domain types are imported from ../app/src; only DB libraries live here.",
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "node --experimental-strip-types _scripts/seed.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "^0.45.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "~6.0.2"
+  }
+}

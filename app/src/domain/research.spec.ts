@@ -62,17 +62,14 @@ describe('toCompetitor', () => {
     expect(competitor.updatedAt).toBe('2026-07-02T10:00:00.000Z');
   });
 
-  it('derives a slug id from the name', () => {
+  it('derives the id from the website URL, not the name (M6 identity)', () => {
     const competitor = toCompetitor(parseResearchResult(validResult), url, now);
-    expect(competitor.id).toBe('acme-analytics');
+    expect(competitor.id).toBe('competitor.example.com/product');
   });
 
-  it('falls back to a non-empty id when the name has no slug characters', () => {
-    const competitor = toCompetitor(
-      parseResearchResult({ ...validResult, name: '!!!' }),
-      url,
-      now,
-    );
-    expect(competitor.id.length).toBeGreaterThan(0);
+  it('gives the same id for equivalent URL spellings of the same site', () => {
+    const a = toCompetitor(parseResearchResult(validResult), 'https://www.competitor.example.com/product/', now);
+    const b = toCompetitor(parseResearchResult(validResult), 'https://competitor.example.com/product', now);
+    expect(a.id).toBe(b.id);
   });
 });
