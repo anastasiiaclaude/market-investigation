@@ -26,7 +26,12 @@ export function websiteKey(raw: string): string {
   const params = [...url.searchParams.entries()]
     .filter(([key]) => !TRACKING_PARAMS.test(key))
     .sort(([a], [b]) => a.localeCompare(b));
-  const query = params.length > 0 ? `?${params.map(([k, v]) => `${k}=${v}`).join('&')}` : '';
+  // Re-encode each pair so a value containing `&`/`=` can't collide two distinct
+  // URLs onto one key.
+  const query =
+    params.length > 0
+      ? `?${params.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')}`
+      : '';
 
   return `${host}${port}${path}${query}`;
 }

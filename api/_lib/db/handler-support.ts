@@ -35,9 +35,8 @@ export async function withRepo(
   try {
     return toResponse(await fn(repo));
   } catch (cause) {
-    return Response.json(
-      { error: `Database error: ${(cause as Error).message}` },
-      { status: 500 },
-    );
+    // Log the real cause server-side; never leak driver internals to the client.
+    console.error('Competitor request failed:', cause);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
