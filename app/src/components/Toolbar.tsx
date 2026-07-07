@@ -9,6 +9,8 @@ interface ToolbarProps {
   onFilterChange: (filter: FilterState) => void;
   view: View;
   onViewChange: (view: View) => void;
+  /** Opens the empty add-competitor form. */
+  onAdd: () => void;
 }
 
 /**
@@ -21,6 +23,7 @@ export default function Toolbar({
   onFilterChange,
   view,
   onViewChange,
+  onAdd,
 }: ToolbarProps) {
   const toggleArea = (area: FeatureArea) => {
     const areas = filter.areas.includes(area)
@@ -41,6 +44,9 @@ export default function Toolbar({
           onChange={(e) => onFilterChange({ ...filter, query: e.target.value })}
         />
         <ViewToggle view={view} onChange={onViewChange} />
+        <button type="button" className="btn btn-primary add-competitor" onClick={onAdd}>
+          Add competitor
+        </button>
       </div>
       <div className="area-filter" role="group" aria-label="Filter by feature area">
         {FEATURE_AREAS.map((area) => {

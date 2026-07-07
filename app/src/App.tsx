@@ -1,23 +1,67 @@
 import { useState } from 'react';
 import CompetitorCards from './components/CompetitorCards';
+import CompetitorForm from './components/CompetitorForm';
 import CompetitorTable from './components/CompetitorTable';
 import Toolbar from './components/Toolbar';
-import { RATINGS } from './domain/competitor';
+import { RATINGS, type Competitor } from './domain/competitor';
+import { toCompetitor, type CompetitorFormValues } from './domain/competitor-form';
+import { createCompetitor, updateCompetitor } from './domain/competitors-api';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
 import { ratingToCell } from './domain/rating-cell';
 import { useCompetitors } from './hooks/useCompetitors';
 import { useViewPreference } from './hooks/useViewPreference';
 import { VA_INDIGO } from './mocks/competitors';
 
+type FormState =
+  | { open: false }
+  | { open: true; mode: 'create' }
+  | { open: true; mode: 'edit'; competitor: Competitor };
+
 export default function App() {
   const [filter, setFilter] = useState(EMPTY_FILTER);
   const [view, setView] = useViewPreference();
-  const competitorsState = useCompetitors();
+  const { state: competitorsState, upsert } = useCompetitors();
+
+  const [form, setForm] = useState<FormState>({ open: false });
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const loading = competitorsState.status === 'loading';
   const source = loading ? [] : competitorsState.competitors;
   const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
+
+  const openAdd = () => {
+    setFormError(null);
+    setForm({ open: true, mode: 'create' });
+  };
+  const openEdit = (competitor: Competitor) => {
+    setFormError(null);
+    setForm({ open: true, mode: 'edit', competitor });
+  };
+  const closeForm = () => {
+    setForm({ open: false });
+    setFormError(null);
+  };
+
+  const handleSubmit = async (values: CompetitorFormValues) => {
+    if (!form.open) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      const record = toCompetitor(values, new Date());
+      const saved =
+        form.mode === 'edit'
+          ? await updateCompetitor(form.competitor.id, record)
+          : await createCompetitor(record);
+      upsert(saved);
+      closeForm();
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <main className="dashboard">
@@ -41,12 +85,18 @@ export default function App() {
         onFilterChange={setFilter}
         view={view}
         onViewChange={setView}
+        onAdd={openAdd}
       />
 
       {view === 'table' ? (
         <CompetitorTable home={VA_INDIGO} competitors={competitors} areas={areas} />
       ) : (
-        <CompetitorCards home={VA_INDIGO} competitors={competitors} areas={areas} />
+        <CompetitorCards
+          home={VA_INDIGO}
+          competitors={competitors}
+          areas={areas}
+          onEdit={openEdit}
+        />
       )}
 
       {loading && <p className="empty-note">Loading competitors…</p>}
@@ -72,6 +122,17 @@ export default function App() {
           );
         })}
       </ul>
+
+      {form.open && (
+        <CompetitorForm
+          mode={form.mode}
+          initial={form.mode === 'edit' ? form.competitor : undefined}
+          onSubmit={handleSubmit}
+          onClose={closeForm}
+          submitting={submitting}
+          error={formError}
+        />
+      )}
     </main>
   );
 }
