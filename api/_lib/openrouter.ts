@@ -24,6 +24,20 @@ interface ChatCompletion {
   choices?: Array<{ message?: { content?: string } }>;
 }
 
+/**
+ * A non-OK OpenRouter response, carrying the upstream HTTP status so callers can
+ * distinguish a `429` rate limit (free-tier throttling) from other failures and
+ * surface it as such (FR-16).
+ */
+export class OpenRouterError extends Error {
+  readonly status: number;
+  constructor(status: number) {
+    super(`OpenRouter request failed with status ${status}`);
+    this.name = 'OpenRouterError';
+    this.status = status;
+  }
+}
+
 /** Send chat messages to OpenRouter and return the assistant's text content. */
 export async function callOpenRouter(
   messages: ChatMessage[],
@@ -39,7 +53,7 @@ export async function callOpenRouter(
   });
 
   if (!res.ok) {
-    throw new Error(`OpenRouter request failed with status ${res.status}`);
+    throw new OpenRouterError(res.status);
   }
 
   const data = (await res.json()) as ChatCompletion;

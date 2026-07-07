@@ -5,7 +5,7 @@
 
 import { extract } from './extract';
 import { buildResearchPrompt, parseResearchReply } from './summarize';
-import { callOpenRouter } from './openrouter';
+import { callOpenRouter, OpenRouterError } from './openrouter';
 import { toCompetitor } from '../../app/src/domain/research';
 import type { Competitor } from '../../app/src/domain/competitor';
 import type { CompetitorRepo } from './db/repository';
@@ -60,6 +60,14 @@ export async function runResearch({
   try {
     reply = await callOpenRouter(buildResearchPrompt(cleanText), { apiKey, model, fetchImpl });
   } catch (cause) {
+    // Surface a rate limit as 429 (the handler forwards it) so the UI can show a
+    // wait-and-retry message; any other upstream failure stays a 502.
+    if (cause instanceof OpenRouterError && cause.status === 429) {
+      throw new ResearchError(
+        'The AI service is rate-limited right now. Please try again in a moment.',
+        429,
+      );
+    }
     throw new ResearchError(`Summarization failed: ${(cause as Error).message}`, 502);
   }
 

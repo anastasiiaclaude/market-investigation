@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { callOpenRouter, OPENROUTER_URL } from './openrouter';
+import { callOpenRouter, OpenRouterError, OPENROUTER_URL } from './openrouter';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -33,11 +33,13 @@ describe('callOpenRouter', () => {
     expect(sent.messages).toEqual(messages);
   });
 
-  it('throws when OpenRouter responds non-ok', async () => {
+  it('throws an OpenRouterError carrying the upstream status when non-ok', async () => {
     const fetchImpl = vi.fn(async () => jsonResponse({ error: 'nope' }, 429));
-    await expect(
-      callOpenRouter(messages, { apiKey: 'k', model: 'm', fetchImpl }),
-    ).rejects.toThrow(/429/);
+    const err = await callOpenRouter(messages, { apiKey: 'k', model: 'm', fetchImpl }).catch(
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(OpenRouterError);
+    expect((err as OpenRouterError).status).toBe(429);
   });
 
   it('throws when the response has no message content', async () => {
