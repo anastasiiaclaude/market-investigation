@@ -120,6 +120,8 @@ code {
   --gap: #d1242f;
   --gap-bg: rgba(209, 36, 47, 0.1);
   --home-bg: var(--accent-bg);
+  --notice: #b7791f;
+  --notice-bg: rgba(183, 121, 31, 0.12);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -130,6 +132,8 @@ code {
     --rating-absent: #8b8b93;
     --gap: #ff7b72;
     --gap-bg: rgba(255, 123, 114, 0.15);
+    --notice: #e3a008;
+    --notice-bg: rgba(227, 160, 8, 0.15);
   }
 }
 
@@ -379,13 +383,14 @@ code {
   font-style: italic;
 }
 
-/* Non-blocking notice (e.g. mock-data fallback when the server is unreachable). */
+/* Non-blocking notice (e.g. mock-data fallback when the server is unreachable).
+   Amber `--notice` token, distinct from the red `--gap` gap-highlight domain. */
 .notice {
   margin: 0 0 16px;
   padding: 10px 14px;
-  border: 1px solid var(--gap);
+  border: 1px solid var(--notice);
   border-radius: 8px;
-  background: var(--gap-bg);
+  background: var(--notice-bg);
   color: var(--text-h);
   font-size: 0.9rem;
 }
