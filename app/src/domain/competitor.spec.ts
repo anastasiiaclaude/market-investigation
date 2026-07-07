@@ -18,6 +18,22 @@ describe('parseCompetitor', () => {
     expect(() => parseCompetitor({ ...valid, website: 'not-a-url' })).toThrow();
   });
 
+  it('rejects a non-http(s) website (XSS-prone protocols)', () => {
+    for (const website of [
+      'javascript:alert(1)',
+      'data:text/html,<script>alert(1)</script>',
+      'vbscript:msgbox(1)',
+      'ftp://example.com/file',
+    ]) {
+      expect(() => parseCompetitor({ ...valid, website })).toThrow();
+    }
+  });
+
+  it('accepts both http and https websites', () => {
+    expect(() => parseCompetitor({ ...valid, website: 'http://example.com/' })).not.toThrow();
+    expect(() => parseCompetitor({ ...valid, website: 'https://example.com/' })).not.toThrow();
+  });
+
   it('rejects a competitor missing a feature area', () => {
     const partialFeatures: Partial<typeof valid.features> = { ...valid.features };
     delete partialFeatures.alerting;
