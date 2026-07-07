@@ -6,6 +6,7 @@ import {
   type Rating,
 } from './competitor';
 import { websiteKey } from './identity';
+import { isHttpUrl } from './url';
 
 /**
  * Pure form logic for the add/edit competitor form (M7, FR-5/FR-6). The
@@ -72,15 +73,6 @@ export function validate(values: CompetitorFormValues): FormErrors {
   }
 
   return errors;
-}
-
-function isHttpUrl(raw: string): boolean {
-  try {
-    const url = new URL(raw);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 /**
