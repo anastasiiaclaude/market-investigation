@@ -5,14 +5,18 @@ import Toolbar from './components/Toolbar';
 import { RATINGS } from './domain/competitor';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
 import { ratingToCell } from './domain/rating-cell';
+import { useCompetitors } from './hooks/useCompetitors';
 import { useViewPreference } from './hooks/useViewPreference';
-import { MOCK_COMPETITORS, VA_INDIGO } from './mocks/competitors';
+import { VA_INDIGO } from './mocks/competitors';
 
 export default function App() {
   const [filter, setFilter] = useState(EMPTY_FILTER);
   const [view, setView] = useViewPreference();
+  const competitorsState = useCompetitors();
 
-  const competitors = filterCompetitors(MOCK_COMPETITORS, filter.query);
+  const loading = competitorsState.status === 'loading';
+  const source = loading ? [] : competitorsState.competitors;
+  const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
 
   return (
@@ -25,6 +29,12 @@ export default function App() {
           VA-INDIGO is weak or absent and a competitor is stronger.
         </p>
       </header>
+
+      {competitorsState.status === 'fallback' && (
+        <p className="notice" role="status">
+          Showing sample data — couldn’t reach the server.
+        </p>
+      )}
 
       <Toolbar
         filter={filter}
@@ -39,7 +49,13 @@ export default function App() {
         <CompetitorCards home={VA_INDIGO} competitors={competitors} areas={areas} />
       )}
 
-      {competitors.length === 0 && (
+      {loading && <p className="empty-note">Loading competitors…</p>}
+
+      {!loading && source.length === 0 && (
+        <p className="empty-note">No competitors yet — add one via research.</p>
+      )}
+
+      {!loading && source.length > 0 && competitors.length === 0 && (
         <p className="empty-note">No competitors match your search.</p>
       )}
 

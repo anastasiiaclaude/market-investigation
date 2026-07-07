@@ -378,3 +378,14 @@ code {
   color: var(--text);
   font-style: italic;
 }
+
+/* Non-blocking notice (e.g. mock-data fallback when the server is unreachable). */
+.notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--gap);
+  border-radius: 8px;
+  background: var(--gap-bg);
+  color: var(--text-h);
+  font-size: 0.9rem;
+}
