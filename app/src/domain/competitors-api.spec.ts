@@ -3,8 +3,11 @@ import {
   fetchCompetitors,
   createCompetitor,
   updateCompetitor,
+  researchCompetitor,
   COMPETITORS_ENDPOINT,
+  RESEARCH_ENDPOINT,
 } from './competitors-api';
+import { ApiError } from './api-error';
 import type { Competitor } from './competitor';
 
 const seeq: Competitor = {
@@ -44,12 +47,16 @@ describe('fetchCompetitors', () => {
     expect(await fetchCompetitors(stubFetch([]))).toEqual([]);
   });
 
-  it('throws on a non-OK status', async () => {
-    await expect(fetchCompetitors(stubFetch({ error: 'boom' }, 500))).rejects.toThrow();
+  it('throws an ApiError on a non-OK status (a real server error)', async () => {
+    await expect(
+      fetchCompetitors(stubFetch({ error: 'boom' }, 500)),
+    ).rejects.toBeInstanceOf(ApiError);
   });
 
-  it('throws when the body is not an array', async () => {
-    await expect(fetchCompetitors(stubFetch({ not: 'an array' }))).rejects.toThrow();
+  it('throws a non-ApiError on a shape failure (the dev-fallback signal)', async () => {
+    const err = await fetchCompetitors(stubFetch({ not: 'an array' })).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err).not.toBeInstanceOf(ApiError);
   });
 
   it('throws when a row fails schema validation', async () => {
@@ -83,9 +90,9 @@ describe('createCompetitor', () => {
     expect(JSON.parse(String(calls[0]?.init?.body))).toEqual(seeq);
   });
 
-  it('throws on a non-OK status', async () => {
+  it('throws an ApiError on a non-OK status', async () => {
     const { impl } = recordingFetch({ error: 'bad' }, 400);
-    await expect(createCompetitor(seeq, impl)).rejects.toThrow();
+    await expect(createCompetitor(seeq, impl)).rejects.toBeInstanceOf(ApiError);
   });
 
   it('throws when the returned row fails schema validation', async () => {
@@ -113,8 +120,33 @@ describe('updateCompetitor', () => {
     );
   });
 
-  it('throws on a non-OK status (e.g. 404)', async () => {
+  it('throws an ApiError on a non-OK status (e.g. 404)', async () => {
     const { impl } = recordingFetch({ error: 'missing' }, 404);
-    await expect(updateCompetitor(seeq.id, {}, impl)).rejects.toThrow();
+    await expect(updateCompetitor(seeq.id, {}, impl)).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe('researchCompetitor', () => {
+  it('POSTs the url to the research endpoint and returns the validated record', async () => {
+    const { impl, calls } = recordingFetch(seeq, 200);
+    const result = await researchCompetitor('https://www.seeq.com/', impl);
+
+    expect(result).toEqual(seeq);
+    expect(calls[0]?.url).toBe(RESEARCH_ENDPOINT);
+    expect(calls[0]?.init?.method).toBe('POST');
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ url: 'https://www.seeq.com/' });
+  });
+
+  it('throws a retryable ApiError on a 429 rate limit', async () => {
+    const { impl } = recordingFetch({ error: 'rate limited' }, 429);
+    const err = await researchCompetitor('https://x.example/', impl).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect((err as ApiError).status).toBe(429);
+    expect((err as ApiError).retryable).toBe(true);
+  });
+
+  it('throws when the returned record fails schema validation', async () => {
+    const { impl } = recordingFetch({ ...seeq, website: 'not-a-url' }, 200);
+    await expect(researchCompetitor('https://x.example/', impl)).rejects.toThrow();
   });
 });
