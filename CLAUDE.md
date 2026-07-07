@@ -106,6 +106,15 @@ where `/api` is unserved, still renders); a valid empty response shows a distinc
 empty-DB note. VA-INDIGO stays client-pinned. Seed script fixed to run under
 native Node TS (self-contained; PR #19). **M6 complete** (live DB path
 deploy-verified against Neon).
+**M7 done (add/edit form, issue #7):** `CompetitorForm` (native `<dialog>`) writes
+to the M6 CRUD API (FR-5/FR-6). Pure `app/src/domain/competitor-form.ts` holds
+values/validation + `toCompetitor` (node-tested); `competitors-api.ts` gained
+write-path `createCompetitor`/`updateCompetitor`; `useCompetitors` now returns
+`{ state, upsert }` and merges the returned record into the list (no refetch).
+Toolbar has an "Add competitor" button; rival cards have an "Edit" button. Website
+is read-only on edit (id = `websiteKey`, immutable per the M6 `PUT` contract).
+Scope: add + edit rivals only — VA-INDIGO stays non-editable, no delete. Writes are
+deploy-verified (vite-only dev 404s on save, error surfaced inline). No new dep.
 
 ## Working agreement
 
@@ -153,6 +162,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 005 — Cards + view toggle + filter/search (M4)](docs/requirements/feature-005-cards-toggle-filter.md)
 - [Feature 006 — Research endpoint: extraction + summarization (M5)](docs/requirements/feature-006-research-endpoint.md)
 - [Feature 007 — Persistence + dedup (M6)](docs/requirements/feature-007-persistence.md)
+- [Feature 008 — Add/edit competitor form (M7)](docs/requirements/feature-008-competitor-form.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -172,3 +182,4 @@ Stop and ask via AskUserQuestion when:
 - [005-cards-toggle-filter](docs/retrospectives/005-cards-toggle-filter.md) — M4; pure `filter.ts` + `view-preference.ts` (node-tested, no jsdom), `buildComparison` optional `areas` subset, card gaps derived from the same model, `preview` launch config (4173) as the `:5173`-taken workaround.
 - [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
 - [007-persistence](docs/retrospectives/007-persistence.md) — M6; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip. Part B: `App.tsx` reads `GET /api/competitors` via pure `competitors-api` + thin `useCompetitors`, mock-fallback+banner on any fetch throw (vite dev serves `index.html` for `/api`, so fallback fires on JSON-parse not status). Seed was never actually run until now — crashed on extensionless imports under native Node TS, fixed self-contained (PR #19).
+- [008-competitor-form](docs/retrospectives/008-competitor-form.md) — M7; add/edit `<dialog>` form over the M6 CRUD API, pure `competitor-form.ts` (values/validation + `toCompetitor`), write-path `createCompetitor`/`updateCompetitor` mirroring the read client, `useCompetitors` gains `upsert` (merge-not-refetch), website read-only on edit (immutable `websiteKey` id), first real `.btn` styles, writes deploy-verified (vite-only dev 404s on save).
