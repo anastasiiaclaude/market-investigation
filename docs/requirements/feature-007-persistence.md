@@ -1,11 +1,11 @@
 # Feature 007 — Persistence + dedup (Postgres + Drizzle)
 
-Milestone **M6**, split into two parts. **Part A (this doc's primary scope):**
-the backend — persist competitors in Vercel Postgres (Neon) via Drizzle, expose
-CRUD through `api/competitors`, and make `POST /api/research` upsert so re-runs
-never create duplicates. **Part B (follow-up):** wire the frontend read-path
-(`App.tsx` fetches `GET /api/competitors`). Traces to **FR-10** (persist / CRUD)
-and **FR-11** (dedup on research).
+Milestone **M6**, split into two parts. **Part A (done):** the backend — persist
+competitors in Vercel Postgres (Neon) via Drizzle, expose CRUD through
+`api/competitors`, and make `POST /api/research` upsert so re-runs never create
+duplicates. **Part B (done):** wire the frontend read-path — `App.tsx` fetches
+`GET /api/competitors`, with a mock fallback for vite-only dev. Traces to
+**FR-10** (persist / CRUD) and **FR-11** (dedup on research).
 
 Legalized by [ADR 003](../decisions/003-deploy-vercel-serverless.md) (persistence
 on Postgres + Drizzle). The structural specifics — `api/` as its own sub-package,
@@ -108,12 +108,38 @@ curl -X POST …/api/research -d '{"url":"https://www.seeq.com/"}'   # twice
 curl …/api/competitors         # exactly one Seeq record; persists across reloads
 ```
 
+## Part B — frontend read-path (done)
+
+- **Pure `app/src/domain/competitors-api.ts`** — `fetchCompetitors(fetchImpl)`
+  GETs `/api/competitors` and validates each row against `competitorSchema`;
+  throws on network failure, non-OK status, non-array body, or an invalid row.
+  Node-tested with an injected fetch (no server, no jsdom) — the view-preference
+  seam pattern.
+- **Thin `useCompetitors` hook** — wires the fetch to React state. On any throw
+  it falls back to `MOCK_COMPETITORS` so `npm run dev` (vite-only, `/api`
+  unserved) still renders; a successful empty response stays empty (a valid
+  state, not a fallback). Untested by design, like `useViewPreference`.
+- **`App.tsx`** swaps the competitor source from `MOCK_COMPETITORS` to the hook;
+  `VA_INDIGO` stays pinned, filter + view untouched. States: a "sample data"
+  banner on fallback, a "Loading…" note while fetching, a distinct empty-DB note,
+  and the existing filtered-empty note.
+
+Part B acceptance:
+- GIVEN the API returns a valid `Competitor[]`
+  WHEN the dashboard loads
+  THEN it renders those competitors (VA-INDIGO still pinned), no banner.
+- GIVEN the fetch fails (e.g. vite-only dev, or a non-JSON/500 response)
+  WHEN the dashboard loads
+  THEN it shows the mock rivals plus the "sample data" banner.
+- GIVEN a valid empty response
+  WHEN the dashboard loads
+  THEN it shows the empty-DB note, not the mock data.
+
 ## Out of scope
 
-- Frontend read-path wiring (`App.tsx` → `GET /api/competitors`) — **Part B** of
-  this milestone.
 - Add/edit competitor form (M7, FR-5/FR-6).
 - Cron-scheduled research, export, Jira/Confluence, rate limits (M8).
+- Rich error/retry UX beyond the fallback banner (M8, FR-16).
 
 ## Open questions
 

@@ -96,7 +96,16 @@ URL id, so re-runs never duplicate. CRUD via `/api/competitors` (by-id ops use
 (`drizzle-kit generate/migrate`); idempotent seed (`_scripts/seed.ts`,
 `npm --prefix api run db:seed`) loads mock rivals re-keyed by URL. `.vercelignore`
 + `installCommand` updated so Vercel installs `api/` deps and skips tooling.
-**Part B pending:** wire `App.tsx` to fetch `GET /api/competitors` (read-path).
+**M6 Part B done (frontend read-path, issue #6):** `App.tsx` now loads
+competitors from `GET /api/competitors` instead of the mock. Pure
+`app/src/domain/competitors-api.ts` (`fetchCompetitors`, validates rows via
+`competitorSchema`, node-tested with injected fetch) + thin `useCompetitors`
+hook (untested glue, like `useViewPreference`). On any fetch failure the hook
+falls back to `MOCK_COMPETITORS` + a "sample data" banner (so vite-only dev,
+where `/api` is unserved, still renders); a valid empty response shows a distinct
+empty-DB note. VA-INDIGO stays client-pinned. Seed script fixed to run under
+native Node TS (self-contained; PR #19). **M6 complete** (live DB path
+deploy-verified against Neon).
 
 ## Working agreement
 
@@ -162,4 +171,4 @@ Stop and ask via AskUserQuestion when:
 - [004-comparison-table](docs/retrospectives/004-comparison-table.md) — M3; relative gap rule (weak/absent AND a competitor stronger), VA-INDIGO as a separate `VA_INDIGO` mock (no `isHome` flag), pure `gap.ts` keeps node-only tests (no jsdom dep), real `.rating-*` CSS + `.claude/launch.json`.
 - [005-cards-toggle-filter](docs/retrospectives/005-cards-toggle-filter.md) — M4; pure `filter.ts` + `view-preference.ts` (node-tested, no jsdom), `buildComparison` optional `areas` subset, card gaps derived from the same model, `preview` launch config (4173) as the `:5173`-taken workaround.
 - [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
-- [007-persistence](docs/retrospectives/007-persistence.md) — M6 Part A; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip, live DB path deploy-verified only.
+- [007-persistence](docs/retrospectives/007-persistence.md) — M6; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip. Part B: `App.tsx` reads `GET /api/competitors` via pure `competitors-api` + thin `useCompetitors`, mock-fallback+banner on any fetch throw (vite dev serves `index.html` for `/api`, so fallback fires on JSON-parse not status). Seed was never actually run until now — crashed on extensionless imports under native Node TS, fixed self-contained (PR #19).
