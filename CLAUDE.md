@@ -115,6 +115,19 @@ Toolbar has an "Add competitor" button; rival cards have an "Edit" button. Websi
 is read-only on edit (id = `websiteKey`, immutable per the M6 `PUT` contract).
 Scope: add + edit rivals only — VA-INDIGO stays non-editable, no delete. Writes are
 deploy-verified (vite-only dev 404s on save, error surfaced inline). No new dep.
+**M8 slice 1 done (robustness, issue #8):** FR-16 graceful loading/error, invalid
+URL, rate limits. Pure `domain/api-error.ts` maps a failed `Response` → typed
+`ApiError {message,status,retryable}` (reads the `{error}` body, `429` → friendly
+wait-and-retry, safe on non-JSON); all clients throw it (`fetch` reject →
+`networkError`). Shared `domain/url.ts` (`isHttpUrl`, extracted from the M7 form).
+`researchCompetitor` client wires M5's `POST /api/research` into a minimal
+`ResearchBar` (URL input + button; `noValidate` so `isHttpUrl` is the gate).
+Backend: typed `OpenRouterError` + `research.ts` maps upstream `429` →
+`ResearchError(429)` so rate limits reach the UI as `429`, not `502`.
+`useCompetitors` classifies failures by type — real server error (`ApiError`) →
+`error` state + Retry (`reload`); else the mock `fallback` + banner (vite-only dev
+still renders). Research is deploy-verified. No new dep. Remaining M8 slices open:
+export (FR-13), Jira (FR-14), Confluence (FR-15), Cron (FR-12).
 
 ## Working agreement
 
@@ -163,6 +176,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 006 — Research endpoint: extraction + summarization (M5)](docs/requirements/feature-006-research-endpoint.md)
 - [Feature 007 — Persistence + dedup (M6)](docs/requirements/feature-007-persistence.md)
 - [Feature 008 — Add/edit competitor form (M7)](docs/requirements/feature-008-competitor-form.md)
+- [Feature 009 — Robustness: graceful errors, invalid URL, rate limits (M8)](docs/requirements/feature-009-robustness.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -183,3 +197,4 @@ Stop and ask via AskUserQuestion when:
 - [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
 - [007-persistence](docs/retrospectives/007-persistence.md) — M6; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip. Part B: `App.tsx` reads `GET /api/competitors` via pure `competitors-api` + thin `useCompetitors`, mock-fallback+banner on any fetch throw (vite dev serves `index.html` for `/api`, so fallback fires on JSON-parse not status). Seed was never actually run until now — crashed on extensionless imports under native Node TS, fixed self-contained (PR #19).
 - [008-competitor-form](docs/retrospectives/008-competitor-form.md) — M7; add/edit `<dialog>` form over the M6 CRUD API, pure `competitor-form.ts` (values/validation + `toCompetitor`), write-path `createCompetitor`/`updateCompetitor` mirroring the read client, `useCompetitors` gains `upsert` (merge-not-refetch), website read-only on edit (immutable `websiteKey` id), first real `.btn` styles, writes deploy-verified (vite-only dev 404s on save).
+- [009-robustness](docs/retrospectives/009-robustness.md) — M8 slice 1 (FR-16); typed `ApiError` mapping (reads `{error}` body, `429`→friendly, retryable flag) shared by all clients, `researchCompetitor` + minimal `ResearchBar` (the missing M5 frontend; `noValidate` so custom `isHttpUrl` wins over native `type=url`), backend `OpenRouterError`→`ResearchError(429)` so rate limits surface as `429`, `useCompetitors` splits real server errors (error+Retry) from the dev mock-fallback by error type, `react-hooks/set-state-in-effect` forced the retry refactor.
