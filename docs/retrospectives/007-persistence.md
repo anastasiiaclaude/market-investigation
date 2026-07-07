@@ -1,4 +1,4 @@
-# Retrospective 007 — Persistence + dedup (M6, Part A)
+# Retrospective 007 — Persistence + dedup (M6)
 
 ## What shipped
 
@@ -55,9 +55,35 @@ FR-11 (dedup on research).
   `app/`. Ran `tsc --noEmit -p api/tsconfig.json` (exit 0) by hand; the retro-006
   note about wiring an api type-check into CI still stands and is now more urgent
   with the DB code.
-- **Node TS execution for the seed.** `_scripts/seed.ts` runs via
-  `node --experimental-strip-types` (Node 22+/24) — no `tsx` dependency, staying
-  within the ADR-authorized dep set.
-- **Part B is deferred by design.** The frontend still reads `MOCK_COMPETITORS`;
-  wiring `App.tsx` to `GET /api/competitors` (with a mock fallback for vite-only
-  dev) is the follow-up PR.
+- **Node TS execution for the seed — and the bug it hid (PR #19).** The seed
+  runs via `node --experimental-strip-types` (Node 22+/24, no `tsx` dep). But
+  "deploy-verified only" meant the script was *never actually run* until M6
+  verification — and it crashed: it imported the `client → repository → schema`
+  chain, whose relative imports omit extensions, which native Node TS can't
+  resolve. Fix: made the seed self-contained (imports only the schema,
+  `websiteKey`, and mock data — all type-only/package internally). Lesson:
+  "verified at deploy" is not "verified"; a runnable script wants at least one
+  real run before it's called done.
+
+## Part B — frontend read-path (issue #6)
+
+`App.tsx` now loads competitors from `GET /api/competitors` instead of the mock.
+
+- **Pure `competitors-api.ts`** ([app/src/domain/competitors-api.ts](../../app/src/domain/competitors-api.ts)):
+  `fetchCompetitors(fetchImpl)` GETs the endpoint and validates each row via
+  `competitorSchema`; throws on network/non-OK/non-array/invalid-row. Node-tested
+  with an injected fetch — the exact view-preference seam (pure logic tested, no
+  jsdom).
+- **Thin `useCompetitors` hook** ([app/src/hooks/useCompetitors.ts](../../app/src/hooks/useCompetitors.ts)):
+  wires the fetch to React state; on any throw falls back to `MOCK_COMPETITORS`
+  so vite-only dev still renders. Untested by design, like `useViewPreference`.
+- **Fallback verified via a surprise.** In vite dev, `GET /api/competitors`
+  returns **200** — vite serves `index.html` (SPA fallback) for unknown routes.
+  So the fallback fires not on `!res.ok` but on `res.json()` failing to parse
+  HTML. Good that the client throws on invalid JSON, not just bad status;
+  confirmed live with the preview tools (banner + mock data render).
+- **Empty ≠ error.** A valid `[]` stays empty (distinct empty-DB note); only a
+  throw triggers the mock fallback. Keeps a fresh/seeded-then-emptied DB
+  distinguishable from "server unreachable."
+- **Live DB read** (dashboard showing the 4 seeded Neon rivals) is deploy-time,
+  like the rest of the `api/` path — `vercel dev` or a deploy with `DATABASE_URL`.

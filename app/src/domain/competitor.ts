@@ -46,7 +46,12 @@ export const featuresSchema = z.strictObject(featuresShape);
 export const competitorSchema = z.strictObject({
   id: z.string().min(1),
   name: z.string().min(1),
-  website: z.url(),
+  // Constrain to http(s): bare `z.url()` also accepts `javascript:`/`data:`/
+  // `vbscript:`, which would become an executable link when the website is
+  // rendered as `<a href>` (CompetitorCard). Since rows can arrive from the
+  // unauthenticated `POST /api/competitors` and are read back into the UI, this
+  // closes a stored-XSS vector at the single validation boundary (read + write).
+  website: z.url({ protocol: /^https?$/ }),
   description: z.string(),
   features: featuresSchema,
   updatedAt: z.iso.datetime(),
