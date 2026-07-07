@@ -10,6 +10,8 @@ interface CompetitorCardProps {
   home?: boolean;
   /** Areas where the home product has a gap; only meaningful when `home`. */
   gaps?: ReadonlySet<FeatureArea>;
+  /** Opens the edit form for this competitor (rival cards only). */
+  onEdit?: (competitor: Competitor) => void;
 }
 
 /**
@@ -22,12 +24,18 @@ export default function CompetitorCard({
   areas,
   home = false,
   gaps,
+  onEdit,
 }: CompetitorCardProps) {
   return (
     <article className={`card${home ? ' home-card' : ''}`}>
       <header className="card-header">
         <h2>{competitor.name}</h2>
         {home && <span className="home-badge">Your product</span>}
+        {onEdit && (
+          <button type="button" className="card-edit" onClick={() => onEdit(competitor)}>
+            Edit
+          </button>
+        )}
         <a href={competitor.website} target="_blank" rel="noreferrer noopener">
           {competitor.website}
         </a>
