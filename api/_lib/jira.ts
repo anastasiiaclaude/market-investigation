@@ -5,6 +5,7 @@
 
 import { gapIssueSpecs, type JiraIssueSpec, type JiraSyncResult } from '../../app/src/domain/jira';
 import type { Competitor } from '../../app/src/domain/competitor';
+import { AtlassianError, basicAuth } from './atlassian';
 
 export interface JiraConfig {
   /** e.g. https://your-site.atlassian.net */
@@ -12,21 +13,6 @@ export interface JiraConfig {
   email: string;
   apiToken: string;
   projectKey: string;
-}
-
-/** An Atlassian REST failure carrying the upstream status (FR-16 surfacing). */
-export class AtlassianError extends Error {
-  readonly status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = 'AtlassianError';
-    this.status = status;
-  }
-}
-
-/** HTTP Basic auth header value: base64(email:token). */
-export function basicAuth(email: string, apiToken: string): string {
-  return `Basic ${btoa(`${email}:${apiToken}`)}`;
 }
 
 function headers(config: JiraConfig): Record<string, string> {

@@ -1,4 +1,5 @@
-import { syncGapsToJira, AtlassianError, type JiraConfig } from './_lib/jira';
+import { syncGapsToJira, type JiraConfig } from './_lib/jira';
+import { AtlassianError } from './_lib/atlassian';
 import { parseCompetitor, type Competitor } from '../app/src/domain/competitor';
 
 // Vercel Function — `POST /api/jira` (FR-14, ADR 008). Takes the current home +
