@@ -1,8 +1,9 @@
 import { competitorSchema, type Competitor } from './competitor';
 import { apiError, networkError } from './api-error';
 import { jiraSyncResultSchema, type JiraSyncResult } from './jira';
+import { confluencePublishResultSchema, type ConfluencePublishResult } from './confluence';
 
-export type { JiraSyncResult };
+export type { JiraSyncResult, ConfluencePublishResult };
 
 /**
  * Read-path client for persisted competitors (M6 Part B, FR-10). Pure over an
@@ -140,4 +141,27 @@ export async function syncJiraGaps(
     throw await apiError(res);
   }
   return jiraSyncResultSchema.parse(await res.json());
+}
+
+/**
+ * Publish the comparison to Confluence (M8, FR-15 — ADR 008). Sends the home
+ * product + competitors; the server renders the page and creates-or-updates the
+ * canonical page, returning its id, url, and whether it was created or updated.
+ */
+export const CONFLUENCE_ENDPOINT = '/api/confluence';
+
+export async function publishConfluence(
+  home: Competitor,
+  competitors: Competitor[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<ConfluencePublishResult> {
+  const res = await send(fetchImpl, CONFLUENCE_ENDPOINT, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ home, competitors }),
+  });
+  if (!res.ok) {
+    throw await apiError(res);
+  }
+  return confluencePublishResultSchema.parse(await res.json());
 }

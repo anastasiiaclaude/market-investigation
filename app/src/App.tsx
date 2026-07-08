@@ -9,9 +9,11 @@ import { RATINGS, type Competitor } from './domain/competitor';
 import { toCompetitor, type CompetitorFormValues } from './domain/competitor-form';
 import {
   createCompetitor,
+  publishConfluence,
   researchCompetitor,
   syncJiraGaps,
   updateCompetitor,
+  type ConfluencePublishResult,
   type JiraSyncResult,
 } from './domain/competitors-api';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
@@ -42,8 +44,15 @@ export default function App() {
   const [jiraResult, setJiraResult] = useState<JiraSyncResult | null>(null);
   const [jiraError, setJiraError] = useState<string | null>(null);
 
+  const [confluenceBusy, setConfluenceBusy] = useState(false);
+  const [confluenceResult, setConfluenceResult] = useState<ConfluencePublishResult | null>(null);
+  const [confluenceError, setConfluenceError] = useState<string | null>(null);
+
   const loading = competitorsState.status === 'loading';
   const errored = competitorsState.status === 'error';
+  // Integrations must act on real DB data only — never the mock fallback or an
+  // empty loading list (publishing would overwrite Confluence/Jira with mocks).
+  const ready = competitorsState.status === 'ready';
   const source = 'competitors' in competitorsState ? competitorsState.competitors : [];
   const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
@@ -73,6 +82,19 @@ export default function App() {
       setJiraError(error instanceof Error ? error.message : String(error));
     } finally {
       setJiraBusy(false);
+    }
+  };
+
+  const handlePublishConfluence = async () => {
+    setConfluenceBusy(true);
+    setConfluenceError(null);
+    setConfluenceResult(null);
+    try {
+      setConfluenceResult(await publishConfluence(VA_INDIGO, source));
+    } catch (error) {
+      setConfluenceError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setConfluenceBusy(false);
     }
   };
 
@@ -136,13 +158,21 @@ export default function App() {
 
       <ResearchBar onResearch={handleResearch} busy={researching} error={researchError} />
 
-      {!errored && (
+      {ready && (
         <IntegrationsBar
-          onPushJira={handlePushJira}
-          busy={jiraBusy}
-          result={jiraResult}
-          error={jiraError}
           gapCount={gapCount}
+          jira={{
+            onPush: handlePushJira,
+            busy: jiraBusy,
+            result: jiraResult,
+            error: jiraError,
+          }}
+          confluence={{
+            onPublish: handlePublishConfluence,
+            busy: confluenceBusy,
+            result: confluenceResult,
+            error: confluenceError,
+          }}
         />
       )}
 

@@ -1,4 +1,4 @@
-import { syncGapsToJira, type JiraConfig } from './_lib/jira';
+import { publishComparison, type ConfluenceConfig } from './_lib/confluence';
 import {
   AtlassianError,
   BadRequestError,
@@ -7,10 +7,10 @@ import {
   readAtlassianCreds,
 } from './_lib/atlassian';
 
-// Vercel Function — `POST /api/jira` (FR-14, ADR 008). Takes the current home +
-// competitors, computes the gaps server-side, and files a Jira Task per gap
-// (deduped by marker label). Thin handler over the shared Atlassian seam +
-// `_lib/jira`; mirrors api/confluence.ts. Non-POST methods get a 405.
+// Vercel Function — `POST /api/confluence` (FR-15, ADR 008). Takes the current
+// home + competitors and publishes them as the canonical comparison page
+// (create-or-update by title). Thin handler over the shared Atlassian seam +
+// `_lib/confluence`; mirrors api/jira.ts. Non-POST methods get a 405.
 
 export async function POST(req: Request): Promise<Response> {
   let parsed: Awaited<ReturnType<typeof parseHomeAndCompetitors>>;
@@ -23,13 +23,16 @@ export async function POST(req: Request): Promise<Response> {
 
   const creds = readAtlassianCreds();
   if (!creds) return errorResponse('Atlassian is not configured', 500);
-  const config: JiraConfig = { ...creds, projectKey: process.env.JIRA_PROJECT_KEY || 'KAN' };
+  const config: ConfluenceConfig = {
+    ...creds,
+    spaceKey: process.env.CONFLUENCE_SPACE_KEY || 'SOFTWAREEN',
+  };
 
   try {
-    const result = await syncGapsToJira({ ...parsed, config });
+    const result = await publishComparison({ ...parsed, config });
     return Response.json(result, { status: 200 });
   } catch (cause) {
     if (cause instanceof AtlassianError) return errorResponse(cause.message, cause.status);
-    return errorResponse('Jira sync failed', 502);
+    return errorResponse('Confluence publish failed', 502);
   }
 }

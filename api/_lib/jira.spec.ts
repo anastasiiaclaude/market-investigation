@@ -1,12 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-  basicAuth,
   findIssueByLabel,
   createIssue,
   syncGapsToJira,
-  AtlassianError,
   type JiraConfig,
 } from './jira';
+import { basicAuth, AtlassianError } from './atlassian';
 import { gapIssueSpecs } from '../../app/src/domain/jira';
 import type { Competitor, FeatureArea, Rating } from '../../app/src/domain/competitor';
 import { FEATURE_AREAS } from '../../app/src/domain/competitor';
