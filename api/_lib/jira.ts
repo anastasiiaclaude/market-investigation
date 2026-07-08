@@ -5,22 +5,10 @@
 
 import { gapIssueSpecs, type JiraIssueSpec, type JiraSyncResult } from '../../app/src/domain/jira';
 import type { Competitor } from '../../app/src/domain/competitor';
-import { AtlassianError, basicAuth } from './atlassian';
+import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian';
 
-export interface JiraConfig {
-  /** e.g. https://your-site.atlassian.net */
-  baseUrl: string;
-  email: string;
-  apiToken: string;
+export interface JiraConfig extends AtlassianCreds {
   projectKey: string;
-}
-
-function headers(config: JiraConfig): Record<string, string> {
-  return {
-    authorization: basicAuth(config.email, config.apiToken),
-    'content-type': 'application/json',
-    accept: 'application/json',
-  };
 }
 
 /**
@@ -36,15 +24,16 @@ export async function findIssueByLabel(
   // we never re-file it, even if that issue was later closed. Dedup is by
   // presence, not open-ness — don't narrow this with a status clause.
   const jql = `project = "${config.projectKey}" AND labels = "${markerLabel}"`;
-  const res = await fetchImpl(`${config.baseUrl}/rest/api/3/search/jql`, {
-    method: 'POST',
-    headers: headers(config),
-    body: JSON.stringify({ jql, maxResults: 1, fields: ['key'] }),
-  });
-  if (!res.ok) {
-    throw new AtlassianError(`Jira search failed (status ${res.status})`, res.status);
-  }
-  const data = (await res.json()) as { issues?: Array<{ key?: string }> };
+  const data = (await fetchJson(
+    fetchImpl,
+    `${config.baseUrl}/rest/api/3/search/jql`,
+    {
+      method: 'POST',
+      headers: jsonAuthHeaders(config),
+      body: JSON.stringify({ jql, maxResults: 1, fields: ['key'] }),
+    },
+    'Jira search failed',
+  )) as { issues?: Array<{ key?: string }> };
   return data.issues?.[0]?.key ?? null;
 }
 
@@ -54,23 +43,24 @@ export async function createIssue(
   config: JiraConfig,
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
-  const res = await fetchImpl(`${config.baseUrl}/rest/api/3/issue`, {
-    method: 'POST',
-    headers: headers(config),
-    body: JSON.stringify({
-      fields: {
-        project: { key: config.projectKey },
-        issuetype: { name: 'Task' },
-        summary: spec.summary,
-        description: spec.description,
-        labels: spec.labels,
-      },
-    }),
-  });
-  if (!res.ok) {
-    throw new AtlassianError(`Jira issue create failed (status ${res.status})`, res.status);
-  }
-  const data = (await res.json()) as { key?: string };
+  const data = (await fetchJson(
+    fetchImpl,
+    `${config.baseUrl}/rest/api/3/issue`,
+    {
+      method: 'POST',
+      headers: jsonAuthHeaders(config),
+      body: JSON.stringify({
+        fields: {
+          project: { key: config.projectKey },
+          issuetype: { name: 'Task' },
+          summary: spec.summary,
+          description: spec.description,
+          labels: spec.labels,
+        },
+      }),
+    },
+    'Jira issue create failed',
+  )) as { key?: string };
   if (!data.key) {
     throw new AtlassianError('Jira create returned no issue key', 502);
   }

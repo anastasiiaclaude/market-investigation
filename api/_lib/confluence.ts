@@ -8,34 +8,14 @@ import {
   type ConfluencePublishResult,
 } from '../../app/src/domain/confluence';
 import type { Competitor } from '../../app/src/domain/competitor';
-import { AtlassianError, basicAuth } from './atlassian';
+import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian';
 
-export interface ConfluenceConfig {
-  /** e.g. https://your-site.atlassian.net */
-  baseUrl: string;
-  email: string;
-  apiToken: string;
+export interface ConfluenceConfig extends AtlassianCreds {
   spaceKey: string;
 }
 
 interface PageLinks {
   _links?: { webui?: string; base?: string };
-}
-
-function headers(config: ConfluenceConfig): Record<string, string> {
-  return {
-    authorization: basicAuth(config.email, config.apiToken),
-    'content-type': 'application/json',
-    accept: 'application/json',
-  };
-}
-
-/** Parse a response as JSON, mapping a non-OK status to an AtlassianError. */
-async function readJson(res: Response, context: string): Promise<unknown> {
-  if (!res.ok) {
-    throw new AtlassianError(`${context} (status ${res.status})`, res.status);
-  }
-  return res.json();
 }
 
 /** Absolute page URL from a v2 response's `_links`. */
@@ -52,8 +32,10 @@ export async function resolveSpaceId(
   fetchImpl: typeof fetch = fetch,
 ): Promise<string> {
   const url = `${config.baseUrl}/wiki/api/v2/spaces?keys=${encodeURIComponent(config.spaceKey)}`;
-  const data = (await readJson(
-    await fetchImpl(url, { headers: headers(config) }),
+  const data = (await fetchJson(
+    fetchImpl,
+    url,
+    { headers: jsonAuthHeaders(config) },
     'Confluence space lookup failed',
   )) as { results?: Array<{ id?: string }> };
   const id = data.results?.[0]?.id;
@@ -73,8 +55,10 @@ export async function findPageIdByTitle(
   const url =
     `${config.baseUrl}/wiki/api/v2/pages?space-id=${encodeURIComponent(spaceId)}` +
     `&title=${encodeURIComponent(title)}`;
-  const data = (await readJson(
-    await fetchImpl(url, { headers: headers(config) }),
+  const data = (await fetchJson(
+    fetchImpl,
+    url,
+    { headers: jsonAuthHeaders(config) },
     'Confluence page search failed',
   )) as { results?: Array<{ id?: string; title?: string }> };
   return data.results?.find((p) => p.title === title)?.id ?? null;
@@ -86,8 +70,10 @@ async function currentVersion(
   config: ConfluenceConfig,
   fetchImpl: typeof fetch,
 ): Promise<number> {
-  const data = (await readJson(
-    await fetchImpl(`${config.baseUrl}/wiki/api/v2/pages/${pageId}`, { headers: headers(config) }),
+  const data = (await fetchJson(
+    fetchImpl,
+    `${config.baseUrl}/wiki/api/v2/pages/${pageId}`,
+    { headers: jsonAuthHeaders(config) },
     'Confluence page fetch failed',
   )) as { version?: { number?: number } };
   return data.version?.number ?? 1;
@@ -100,17 +86,19 @@ export async function createPage(
   config: ConfluenceConfig,
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ id: string; url: string }> {
-  const data = (await readJson(
-    await fetchImpl(`${config.baseUrl}/wiki/api/v2/pages`, {
+  const data = (await fetchJson(
+    fetchImpl,
+    `${config.baseUrl}/wiki/api/v2/pages`,
+    {
       method: 'POST',
-      headers: headers(config),
+      headers: jsonAuthHeaders(config),
       body: JSON.stringify({
         spaceId,
         status: 'current',
         title,
         body: { representation: 'storage', value: storage },
       }),
-    }),
+    },
     'Confluence page create failed',
   )) as { id?: string } & PageLinks;
   if (!data.id) throw new AtlassianError('Confluence create returned no page id', 502);
@@ -125,10 +113,12 @@ export async function updatePage(
   fetchImpl: typeof fetch = fetch,
 ): Promise<{ id: string; url: string }> {
   const nextVersion = (await currentVersion(pageId, config, fetchImpl)) + 1;
-  const data = (await readJson(
-    await fetchImpl(`${config.baseUrl}/wiki/api/v2/pages/${pageId}`, {
+  const data = (await fetchJson(
+    fetchImpl,
+    `${config.baseUrl}/wiki/api/v2/pages/${pageId}`,
+    {
       method: 'PUT',
-      headers: headers(config),
+      headers: jsonAuthHeaders(config),
       body: JSON.stringify({
         id: pageId,
         status: 'current',
@@ -136,7 +126,7 @@ export async function updatePage(
         body: { representation: 'storage', value: storage },
         version: { number: nextVersion },
       }),
-    }),
+    },
     'Confluence page update failed',
   )) as { id?: string } & PageLinks;
   if (!data.id) throw new AtlassianError('Confluence update returned no page id', 502);
