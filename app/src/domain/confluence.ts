@@ -85,7 +85,9 @@ export function comparisonPage(
 
 export const confluencePublishResultSchema = z.object({
   pageId: z.string(),
-  url: z.string(),
+  // http(s) only — the value is rendered into an <a href>, so reject a
+  // javascript:/data: URL as defense-in-depth (mirrors competitor.website).
+  url: z.url({ protocol: /^https?$/ }),
   action: z.enum(['created', 'updated']),
 });
 export type ConfluencePublishResult = z.infer<typeof confluencePublishResultSchema>;

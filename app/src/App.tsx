@@ -50,6 +50,9 @@ export default function App() {
 
   const loading = competitorsState.status === 'loading';
   const errored = competitorsState.status === 'error';
+  // Integrations must act on real DB data only — never the mock fallback or an
+  // empty loading list (publishing would overwrite Confluence/Jira with mocks).
+  const ready = competitorsState.status === 'ready';
   const source = 'competitors' in competitorsState ? competitorsState.competitors : [];
   const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
@@ -155,7 +158,7 @@ export default function App() {
 
       <ResearchBar onResearch={handleResearch} busy={researching} error={researchError} />
 
-      {!errored && (
+      {ready && (
         <IntegrationsBar
           gapCount={gapCount}
           jira={{

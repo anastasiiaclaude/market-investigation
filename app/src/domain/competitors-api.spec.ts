@@ -177,7 +177,7 @@ describe('syncJiraGaps', () => {
 });
 
 describe('publishConfluence', () => {
-  const result = { pageId: '999', url: 'https://site/wiki/p/1', action: 'created' as const };
+  const result = { pageId: '999', url: 'https://example.atlassian.net/wiki/p/1', action: 'created' as const };
 
   it('POSTs { home, competitors } to the Confluence endpoint and returns the result', async () => {
     const { impl, calls } = recordingFetch(result, 200);
