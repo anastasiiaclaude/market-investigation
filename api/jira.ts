@@ -37,10 +37,11 @@ export async function POST(req: Request): Promise<Response> {
   let competitors: Competitor[];
   try {
     home = parseCompetitor(raw?.home);
-    if (!Array.isArray(raw?.competitors)) {
+    const competitorsRaw = raw?.competitors;
+    if (!Array.isArray(competitorsRaw)) {
       throw new Error('"competitors" must be an array');
     }
-    competitors = raw.competitors.map((c) => parseCompetitor(c));
+    competitors = competitorsRaw.map((c) => parseCompetitor(c));
   } catch (cause) {
     return error(`Invalid request body: ${(cause as Error).message}`, 400);
   }
