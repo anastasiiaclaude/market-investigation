@@ -607,3 +607,29 @@ code {
 .integrations-error {
   margin: 0;
 }
+
+/* ── M8 export (FR-13): CSV download + print-to-PDF ──────────────────────── */
+
+.export-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Print / Save as PDF: drop all controls, keep the header + comparison so the
+   saved sheet is just the table. */
+@media print {
+  .toolbar,
+  .research-bar,
+  .integrations-bar,
+  .export-bar,
+  .notice,
+  .error-notice,
+  .legend {
+    display: none !important;
+  }
+  .dashboard {
+    overflow: visible;
+    padding: 0;
+  }
+}
