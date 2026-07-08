@@ -2,6 +2,7 @@ import { useState } from 'react';
 import CompetitorCards from './components/CompetitorCards';
 import CompetitorForm from './components/CompetitorForm';
 import CompetitorTable from './components/CompetitorTable';
+import ExportBar from './components/ExportBar';
 import IntegrationsBar from './components/IntegrationsBar';
 import ResearchBar from './components/ResearchBar';
 import Toolbar from './components/Toolbar';
@@ -183,6 +184,10 @@ export default function App() {
         onViewChange={setView}
         onAdd={openAdd}
       />
+
+      {!loading && !errored && (
+        <ExportBar home={VA_INDIGO} competitors={competitors} areas={areas} />
+      )}
 
       {!errored &&
         (view === 'table' ? (
