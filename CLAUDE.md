@@ -52,7 +52,8 @@ npm run setup      # install app/ deps
 them against VA-INDIGO in a table/card view with filter/search, flags gaps
 (FR-4), supports add/edit + on-demand URL research, and fails gracefully. This is
 a snapshot — per-milestone detail lives in the retrospectives (see the
-Self-improvement log) and git history, not here.
+Self-improvement log) and git history, not here. Also: gaps → Jira Tasks, comparison
+→ a Confluence page, and CSV / print-to-PDF export.
 
 **Shape**
 
@@ -84,9 +85,11 @@ Self-improvement log) and git history, not here.
 
 **Open**
 
-- M8 remaining slices: export (FR-13), Cron (FR-12) — each its own feature/spec/retro.
-  (Jira FR-14 → feature-010; Confluence FR-15 → feature-011, both done.) Atlassian
+- M8 remaining slice: Cron scheduled research (FR-12) — its own feature/spec/retro.
+  (Jira FR-14 → 010; Confluence FR-15 → 011; export FR-13 → 012, all done.) Atlassian
   creds (`ATLASSIAN_*`) are deploy-only; live Jira/Confluence verified via the MCP.
+- Unauthenticated write endpoints (research/competitors/jira/confluence) — tracked in
+  #25 (single-user posture; deferred).
 - SSRF residual (#15): the research handler blocks private/metadata hosts, but no
   DNS resolution or redirect re-check yet.
 - **`type="url"` without `noValidate`** in the M7 form has a latent
@@ -142,6 +145,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 009 — Robustness: graceful errors, invalid URL, rate limits (M8)](docs/requirements/feature-009-robustness.md)
 - [Feature 010 — Jira issues from gaps (M8)](docs/requirements/feature-010-jira-gaps.md)
 - [Feature 011 — Publish comparison to Confluence (M8)](docs/requirements/feature-011-confluence-publish.md)
+- [Feature 012 — Export to PDF/Excel (M8)](docs/requirements/feature-012-export.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -165,4 +169,5 @@ Stop and ask via AskUserQuestion when:
 - [008-competitor-form](docs/retrospectives/008-competitor-form.md) — M7; add/edit `<dialog>` form over the M6 CRUD API, pure `competitor-form.ts` (values/validation + `toCompetitor`), write-path `createCompetitor`/`updateCompetitor` mirroring the read client, `useCompetitors` gains `upsert` (merge-not-refetch), website read-only on edit (immutable `websiteKey` id), first real `.btn` styles, writes deploy-verified (vite-only dev 404s on save).
 - [009-robustness](docs/retrospectives/009-robustness.md) — M8 slice 1 (FR-16); typed `ApiError` mapping (reads `{error}` body, `429`→friendly, retryable flag) shared by all clients, `researchCompetitor` + minimal `ResearchBar` (the missing M5 frontend; `noValidate` so custom `isHttpUrl` wins over native `type=url`), backend `OpenRouterError`→`ResearchError(429)` so rate limits surface as `429`, `useCompetitors` splits real server errors (error+Retry) from the dev mock-fallback by error type, `react-hooks/set-state-in-effect` forced the retry refactor.
 - [010-jira-gaps](docs/retrospectives/010-jira-gaps.md) — M8 slice 2 (FR-14, ADR 008); gaps→Jira Tasks in `KAN`, pure `domain/jira.ts` (gap→spec + minimal ADF since v3 needs ADF-not-string), `api/_lib/jira.ts` (Basic-auth, marker-label dedup via `/search/jql`, create, sync) + thin `api/jira.ts`, `syncJiraGaps` client + `IntegrationsBar`. Real `KAN` metadata read via the Atlassian MCP before coding. Review caught: `strictNullChecks` error `api/build` misses (**root build doesn't `tsc` `api/`**), duplicated `JiraSyncResult` (unified to one `app/src` Zod schema + validated reply), `summarize` moved out of the component, `strongerCompetitors`/`gapAreas` extracted to `gap.ts`.
-- [011-confluence-publish](docs/retrospectives/011-confluence-publish.md) — M8 slice 3 (FR-15, ADR 008); comparison → one canonical page in `SOFTWAREEN`, create-or-update by title (v2 needs numeric `spaceId`, resolved from key; update reads version + PUTs `+1`). Pure `domain/confluence.ts` (storage-format XHTML + `escapeXml` + result schema), `api/_lib/confluence.ts`, thin `api/confluence.ts`, `publishConfluence` client + second `IntegrationsBar` button. Live page published + find-by-title confirmed via the MCP. Review-driven DRY: shared `api/_lib/atlassian.ts` now holds `errorResponse`/`readAtlassianCreds`/`parseHomeAndCompetitors`/`jsonAuthHeaders`/`fetchJson`, so both handlers shed ~40 lines and the next integration inherits the seam.
+- [011-confluence-publish](docs/retrospectives/011-confluence-publish.md) — M8 slice 3 (FR-15, ADR 008); comparison → one canonical page in `SOFTWAREEN`, create-or-update by title (v2 needs numeric `spaceId`, resolved from key; update reads version + PUTs `+1`). Pure `domain/confluence.ts` (storage-format XHTML + `escapeXml` + result schema), `api/_lib/confluence.ts`, thin `api/confluence.ts`, `publishConfluence` client + second `IntegrationsBar` button. Live page published + find-by-title confirmed via the MCP. Review-driven DRY: shared `api/_lib/atlassian.ts` now holds `errorResponse`/`readAtlassianCreds`/`parseHomeAndCompetitors`/`jsonAuthHeaders`/`fetchJson`, so both handlers shed ~40 lines and the next integration inherits the seam. Review also gated integrations on `ready` state (don't publish mock data) + `z.url()` on the reply.
+- [012-export](docs/retrospectives/012-export.md) — M8 slice 4 (FR-13); **dependency-free, no ADR**. Pure `domain/export.ts` `toCsv` off `buildComparison` (rating labels, `(gap)` suffix, CSV escaping) + `ExportBar` (Blob+UTF-8 BOM download / `window.print()`) + an `@media print` block. WYSIWYG (exports the filtered view); not gated on `ready` (local read-only). Review added `neutralizeFormula` (CSV formula-injection guard, like the earlier `javascript:` hardening). First M8 slice fully browser-verifiable (BOM checked in the downloaded bytes).
