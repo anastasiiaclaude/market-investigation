@@ -25,6 +25,15 @@ describe('csvField', () => {
     expect(csvField('a "b" c')).toBe('"a ""b"" c"');
     expect(csvField('line1\nline2')).toBe('"line1\nline2"');
   });
+  it('neutralizes leading formula characters (Excel/Sheets injection)', () => {
+    expect(csvField('=1+1')).toBe("'=1+1");
+    expect(csvField('+cmd')).toBe("'+cmd");
+    expect(csvField('-2')).toBe("'-2");
+    expect(csvField('@foo')).toBe("'@foo");
+  });
+  it('neutralizes and still quotes a formula field that contains a comma', () => {
+    expect(csvField('=A, B')).toBe(`"'=A, B"`);
+  });
 });
 
 describe('toCsv', () => {
