@@ -2,6 +2,7 @@ import { useState } from 'react';
 import CompetitorCards from './components/CompetitorCards';
 import CompetitorForm from './components/CompetitorForm';
 import CompetitorTable from './components/CompetitorTable';
+import IntegrationsBar from './components/IntegrationsBar';
 import ResearchBar from './components/ResearchBar';
 import Toolbar from './components/Toolbar';
 import { RATINGS, type Competitor } from './domain/competitor';
@@ -9,8 +10,11 @@ import { toCompetitor, type CompetitorFormValues } from './domain/competitor-for
 import {
   createCompetitor,
   researchCompetitor,
+  syncJiraGaps,
   updateCompetitor,
+  type JiraSyncResult,
 } from './domain/competitors-api';
+import { gapIssueSpecs } from './domain/jira';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
 import { ratingToCell } from './domain/rating-cell';
 import { useCompetitors } from './hooks/useCompetitors';
@@ -34,11 +38,18 @@ export default function App() {
   const [researching, setResearching] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
 
+  const [jiraBusy, setJiraBusy] = useState(false);
+  const [jiraResult, setJiraResult] = useState<JiraSyncResult | null>(null);
+  const [jiraError, setJiraError] = useState<string | null>(null);
+
   const loading = competitorsState.status === 'loading';
   const errored = competitorsState.status === 'error';
   const source = 'competitors' in competitorsState ? competitorsState.competitors : [];
   const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
+
+  // Gaps are computed over the full market (not the filtered view) + VA-INDIGO.
+  const gapCount = gapIssueSpecs(VA_INDIGO, source).length;
 
   const handleResearch = async (url: string) => {
     setResearching(true);
@@ -49,6 +60,19 @@ export default function App() {
       setResearchError(error instanceof Error ? error.message : String(error));
     } finally {
       setResearching(false);
+    }
+  };
+
+  const handlePushJira = async () => {
+    setJiraBusy(true);
+    setJiraError(null);
+    setJiraResult(null);
+    try {
+      setJiraResult(await syncJiraGaps(VA_INDIGO, source));
+    } catch (error) {
+      setJiraError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setJiraBusy(false);
     }
   };
 
@@ -111,6 +135,16 @@ export default function App() {
       )}
 
       <ResearchBar onResearch={handleResearch} busy={researching} error={researchError} />
+
+      {!errored && (
+        <IntegrationsBar
+          onPushJira={handlePushJira}
+          busy={jiraBusy}
+          result={jiraResult}
+          error={jiraError}
+          gapCount={gapCount}
+        />
+      )}
 
       <Toolbar
         filter={filter}
