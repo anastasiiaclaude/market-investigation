@@ -1,6 +1,6 @@
+import { z } from 'zod';
 import type { Competitor, FeatureArea } from './competitor';
-import { buildComparison } from './gap';
-import { ratingToCell } from './rating-cell';
+import { buildComparison, strongerCompetitors } from './gap';
 
 /**
  * Pure mapping from competitive gaps to Jira issue specs (M8, FR-14 — ADR 008).
@@ -78,10 +78,9 @@ export function gapIssueSpecs(
     .filter((row) => row.home.isGap)
     .map((row) => {
       const homeRating = home.features[row.area];
-      const homeSeverity = ratingToCell(homeRating).severity;
-      const stronger = competitors
-        .filter((c) => ratingToCell(c.features[row.area]).severity > homeSeverity)
-        .map((c) => `${c.name} — ${c.features[row.area]}`);
+      const stronger = strongerCompetitors(row.area, home, competitors).map(
+        (c) => `${c.name} — ${c.features[row.area]}`,
+      );
       const markerLabel = gapMarkerLabel(row.area);
 
       return {
@@ -98,4 +97,28 @@ export function gapIssueSpecs(
         markerLabel,
       };
     });
+}
+
+// ── Sync result (shared shape) ──────────────────────────────────────────────
+// The single source of truth for `POST /api/jira`'s response: `api/_lib/jira.ts`
+// builds it, the client (`competitors-api.ts`) validates the reply against it,
+// keeping the all-Zod-in-`app/src` invariant.
+
+const gapRefSchema = z.object({ area: z.string(), key: z.string() });
+export const jiraSyncResultSchema = z.object({
+  created: z.array(gapRefSchema),
+  skipped: z.array(gapRefSchema),
+});
+export type JiraSyncResult = z.infer<typeof jiraSyncResultSchema>;
+
+/** Human summary of a sync ("Created KAN-1, KAN-2 · 1 already existed"). */
+export function summarizeJiraSync(result: JiraSyncResult): string {
+  const parts: string[] = [];
+  if (result.created.length > 0) {
+    parts.push(`Created ${result.created.map((c) => c.key).join(', ')}`);
+  }
+  if (result.skipped.length > 0) {
+    parts.push(`${result.skipped.length} already existed`);
+  }
+  return parts.length > 0 ? parts.join(' · ') : 'No gaps to file.';
 }

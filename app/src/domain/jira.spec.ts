@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { gapIssueSpecs, gapMarkerLabel, JIRA_LABEL } from './jira';
+import { gapIssueSpecs, gapMarkerLabel, summarizeJiraSync, JIRA_LABEL } from './jira';
 import type { Competitor, FeatureArea, Rating } from './competitor';
 import { FEATURE_AREAS } from './competitor';
 
@@ -85,5 +85,32 @@ describe('gapIssueSpecs', () => {
   it('returns no specs when there are no gaps', () => {
     const strongHome = make('VA-INDIGO', {}, 'strong');
     expect(gapIssueSpecs(strongHome, [rivalA, rivalB])).toEqual([]);
+  });
+});
+
+describe('summarizeJiraSync', () => {
+  it('lists created keys', () => {
+    expect(
+      summarizeJiraSync({ created: [{ area: 'alerting', key: 'KAN-1' }], skipped: [] }),
+    ).toBe('Created KAN-1');
+  });
+
+  it('combines created and skipped', () => {
+    expect(
+      summarizeJiraSync({
+        created: [{ area: 'alerting', key: 'KAN-1' }],
+        skipped: [{ area: 'reporting', key: 'KAN-2' }],
+      }),
+    ).toBe('Created KAN-1 · 1 already existed');
+  });
+
+  it('reports skipped-only', () => {
+    expect(summarizeJiraSync({ created: [], skipped: [{ area: 'alerting', key: 'KAN-2' }] })).toBe(
+      '1 already existed',
+    );
+  });
+
+  it('falls back when nothing happened', () => {
+    expect(summarizeJiraSync({ created: [], skipped: [] })).toBe('No gaps to file.');
   });
 });

@@ -14,8 +14,8 @@ import {
   updateCompetitor,
   type JiraSyncResult,
 } from './domain/competitors-api';
-import { gapIssueSpecs } from './domain/jira';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
+import { gapAreas } from './domain/gap';
 import { ratingToCell } from './domain/rating-cell';
 import { useCompetitors } from './hooks/useCompetitors';
 import { useViewPreference } from './hooks/useViewPreference';
@@ -49,7 +49,7 @@ export default function App() {
   const areas = visibleAreas(filter.areas);
 
   // Gaps are computed over the full market (not the filtered view) + VA-INDIGO.
-  const gapCount = gapIssueSpecs(VA_INDIGO, source).length;
+  const gapCount = gapAreas(VA_INDIGO, source).length;
 
   const handleResearch = async (url: string) => {
     setResearching(true);

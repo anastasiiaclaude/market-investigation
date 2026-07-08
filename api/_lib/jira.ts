@@ -3,7 +3,7 @@
 // don't spam. Web-standard `fetch` + Basic auth — no SDK, mirroring OpenRouter.
 // The pure gap→spec mapping lives in app/src/domain/jira.ts; this file is the I/O.
 
-import { gapIssueSpecs, type JiraIssueSpec } from '../../app/src/domain/jira';
+import { gapIssueSpecs, type JiraIssueSpec, type JiraSyncResult } from '../../app/src/domain/jira';
 import type { Competitor } from '../../app/src/domain/competitor';
 
 export interface JiraConfig {
@@ -86,11 +86,6 @@ export async function createIssue(
     throw new AtlassianError('Jira create returned no issue key', 502);
   }
   return data.key;
-}
-
-export interface JiraSyncResult {
-  created: { area: string; key: string }[];
-  skipped: { area: string; key: string }[];
 }
 
 /**

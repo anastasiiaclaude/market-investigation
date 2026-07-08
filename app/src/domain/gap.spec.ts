@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Competitor, FeatureArea, Rating } from './competitor';
 import { FEATURE_AREAS } from './competitor';
-import { buildComparison, isGap } from './gap';
+import { buildComparison, gapAreas, isGap, strongerCompetitors } from './gap';
 
 /** Build a competitor whose every feature carries `rating`, overridden by `overrides`. */
 function makeCompetitor(
@@ -55,6 +55,30 @@ describe('isGap', () => {
   it('is not a gap with no competitors', () => {
     const home = makeCompetitor('home', 'strong', { [AREA]: 'absent' });
     expect(isGap(AREA, home, [])).toBe(false);
+  });
+});
+
+describe('strongerCompetitors', () => {
+  it('returns only competitors rating strictly higher than home in the area', () => {
+    const home = makeCompetitor('home', 'strong', { [AREA]: 'weak' });
+    const stronger = makeCompetitor('stronger', 'weak', { [AREA]: 'strong' });
+    const equal = makeCompetitor('equal', 'strong', { [AREA]: 'weak' });
+    const weaker = makeCompetitor('weaker', 'strong', { [AREA]: 'absent' });
+    expect(strongerCompetitors(AREA, home, [stronger, equal, weaker])).toEqual([stronger]);
+  });
+});
+
+describe('gapAreas', () => {
+  it('lists the gap areas in canonical order', () => {
+    const home = makeCompetitor('home', 'strong', { alerting: 'weak', reporting: 'absent' });
+    const rival = makeCompetitor('rival', 'strong');
+    expect(gapAreas(home, [rival])).toEqual(['alerting', 'reporting']);
+  });
+
+  it('is empty when there are no gaps', () => {
+    const home = makeCompetitor('home', 'strong');
+    const rival = makeCompetitor('rival', 'weak');
+    expect(gapAreas(home, [rival])).toEqual([]);
   });
 });
 

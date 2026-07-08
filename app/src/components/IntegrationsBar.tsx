@@ -1,4 +1,5 @@
 import type { JiraSyncResult } from '../domain/competitors-api';
+import { summarizeJiraSync } from '../domain/jira';
 
 interface IntegrationsBarProps {
   /** Push the current gaps to Jira; the caller runs the request + owns state. */
@@ -9,15 +10,6 @@ interface IntegrationsBarProps {
   error: string | null;
   /** How many gaps exist right now — gates the button + the empty hint. */
   gapCount: number;
-}
-
-/** Human summary of a Jira sync ("Created KAN-1, KAN-2; 1 already existed"). */
-function summarize(result: JiraSyncResult): string {
-  const created = result.created.map((c) => c.key);
-  const parts: string[] = [];
-  if (created.length > 0) parts.push(`Created ${created.join(', ')}`);
-  if (result.skipped.length > 0) parts.push(`${result.skipped.length} already existed`);
-  return parts.length > 0 ? parts.join(' · ') : 'No gaps to file.';
 }
 
 /**
@@ -54,7 +46,7 @@ export default function IntegrationsBar({
       </div>
       {result && (
         <p className="notice integrations-result" role="status">
-          {summarize(result)}
+          {summarizeJiraSync(result)}
         </p>
       )}
       {error && (

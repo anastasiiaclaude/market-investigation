@@ -1,5 +1,8 @@
 import { competitorSchema, type Competitor } from './competitor';
 import { apiError, networkError } from './api-error';
+import { jiraSyncResultSchema, type JiraSyncResult } from './jira';
+
+export type { JiraSyncResult };
 
 /**
  * Read-path client for persisted competitors (M6 Part B, FR-10). Pure over an
@@ -123,11 +126,6 @@ export async function researchCompetitor(
  */
 export const JIRA_ENDPOINT = '/api/jira';
 
-export interface JiraSyncResult {
-  created: { area: string; key: string }[];
-  skipped: { area: string; key: string }[];
-}
-
 export async function syncJiraGaps(
   home: Competitor,
   competitors: Competitor[],
@@ -141,5 +139,5 @@ export async function syncJiraGaps(
   if (!res.ok) {
     throw await apiError(res);
   }
-  return (await res.json()) as JiraSyncResult;
+  return jiraSyncResultSchema.parse(await res.json());
 }
