@@ -1,5 +1,8 @@
 import { competitorSchema, type Competitor } from './competitor';
 import { apiError, networkError } from './api-error';
+import { jiraSyncResultSchema, type JiraSyncResult } from './jira';
+
+export type { JiraSyncResult };
 
 /**
  * Read-path client for persisted competitors (M6 Part B, FR-10). Pure over an
@@ -113,4 +116,28 @@ export async function researchCompetitor(
     throw await apiError(res);
   }
   return competitorSchema.parse(await res.json());
+}
+
+/**
+ * Push competitive gaps to Jira (M8, FR-14 — ADR 008). Sends the home product +
+ * competitors; the server computes the gaps, files one Task each (deduped), and
+ * returns which were created vs already existed. A non-OK status becomes an
+ * `ApiError` (429 → friendly), so the button surfaces a graceful message.
+ */
+export const JIRA_ENDPOINT = '/api/jira';
+
+export async function syncJiraGaps(
+  home: Competitor,
+  competitors: Competitor[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<JiraSyncResult> {
+  const res = await send(fetchImpl, JIRA_ENDPOINT, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ home, competitors }),
+  });
+  if (!res.ok) {
+    throw await apiError(res);
+  }
+  return jiraSyncResultSchema.parse(await res.json());
 }

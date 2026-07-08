@@ -4,8 +4,10 @@ import {
   createCompetitor,
   updateCompetitor,
   researchCompetitor,
+  syncJiraGaps,
   COMPETITORS_ENDPOINT,
   RESEARCH_ENDPOINT,
+  JIRA_ENDPOINT,
 } from './competitors-api';
 import { ApiError } from './api-error';
 import type { Competitor } from './competitor';
@@ -148,5 +150,26 @@ describe('researchCompetitor', () => {
   it('throws when the returned record fails schema validation', async () => {
     const { impl } = recordingFetch({ ...seeq, website: 'not-a-url' }, 200);
     await expect(researchCompetitor('https://x.example/', impl)).rejects.toThrow();
+  });
+});
+
+describe('syncJiraGaps', () => {
+  const result = { created: [{ area: 'alerting', key: 'KAN-1' }], skipped: [] };
+
+  it('POSTs { home, competitors } to the Jira endpoint and returns the result', async () => {
+    const { impl, calls } = recordingFetch(result, 200);
+    const got = await syncJiraGaps(seeq, [seeq], impl);
+
+    expect(got).toEqual(result);
+    expect(calls[0]?.url).toBe(JIRA_ENDPOINT);
+    expect(calls[0]?.init?.method).toBe('POST');
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ home: seeq, competitors: [seeq] });
+  });
+
+  it('throws a retryable ApiError on a 429 rate limit', async () => {
+    const { impl } = recordingFetch({ error: 'rate limited' }, 429);
+    const err = await syncJiraGaps(seeq, [seeq], impl).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect((err as ApiError).retryable).toBe(true);
   });
 });

@@ -2,6 +2,18 @@ import type { Competitor, FeatureArea } from './competitor';
 import { FEATURE_AREAS, FEATURE_AREA_LABELS } from './competitor';
 import { ratingToCell, type RatingCell } from './rating-cell';
 
+/** Competitors that rate strictly higher than the home product in `area`. */
+export function strongerCompetitors(
+  area: FeatureArea,
+  home: Competitor,
+  competitors: Competitor[],
+): Competitor[] {
+  const homeSeverity = ratingToCell(home.features[area]).severity;
+  return competitors.filter(
+    (c) => ratingToCell(c.features[area]).severity > homeSeverity,
+  );
+}
+
 /**
  * A VA-INDIGO (home) cell is a *gap* when it is weak or absent AND at least one
  * competitor rates strictly higher in that area — a real competitive shortfall,
@@ -15,9 +27,7 @@ export function isGap(
   const homeSeverity = ratingToCell(home.features[area]).severity;
   // strong/adequate (severity ≥ 2) are never gaps.
   if (homeSeverity > ratingToCell('weak').severity) return false;
-  return competitors.some(
-    (c) => ratingToCell(c.features[area]).severity > homeSeverity,
-  );
+  return strongerCompetitors(area, home, competitors).length > 0;
 }
 
 /** The home cell for a feature area, with its gap flag resolved. */
@@ -64,4 +74,15 @@ export function buildComparison(
     competitors: competitors.map((c) => ratingToCell(c.features[area])),
   }));
   return { home, competitors, rows };
+}
+
+/** The feature areas that are gaps, in canonical order — the count-and-list source. */
+export function gapAreas(
+  home: Competitor,
+  competitors: Competitor[],
+  areas?: readonly FeatureArea[],
+): FeatureArea[] {
+  return buildComparison(home, competitors, areas).rows
+    .filter((row) => row.home.isGap)
+    .map((row) => row.area);
 }

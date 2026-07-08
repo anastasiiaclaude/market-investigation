@@ -62,7 +62,7 @@ Self-improvement log) and git history, not here.
 - **Backend** (`api/`): web-standard handlers, pure logic in `api/_lib/`.
   `POST /api/research` (fetch → `extract` → OpenRouter → `Competitor`), CRUD
   `/api/competitors` (by-id ops use `?id=` — URL-key ids contain slashes),
-  `GET /api/health`.
+  `POST /api/jira` (gaps → Jira Tasks, deduped; ADR 008), `GET /api/health`.
 - **DB**: Postgres (Neon) + Drizzle behind a `CompetitorRepo` seam — `drizzleRepo`
   (live) + `inMemoryRepo` (tests). `api/` is its own sub-package (`api/package.json`)
   for the DB driver; migrations + idempotent seed in `api/drizzle/` + `_scripts/`.
@@ -82,8 +82,9 @@ Self-improvement log) and git history, not here.
 
 **Open**
 
-- M8 remaining slices: export (FR-13), Jira (FR-14), Confluence (FR-15), Cron
-  (FR-12) — each its own feature/spec/retro.
+- M8 remaining slices: export (FR-13), Confluence (FR-15), Cron (FR-12) — each its
+  own feature/spec/retro. (Jira FR-14 done — feature-010.) Atlassian creds
+  (`ATLASSIAN_*`) are deploy-only; live Jira/Confluence verified via the MCP.
 - SSRF residual (#15): the research handler blocks private/metadata hosts, but no
   DNS resolution or redirect re-check yet.
 - **`type="url"` without `noValidate`** in the M7 form has a latent
@@ -137,6 +138,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 007 — Persistence + dedup (M6)](docs/requirements/feature-007-persistence.md)
 - [Feature 008 — Add/edit competitor form (M7)](docs/requirements/feature-008-competitor-form.md)
 - [Feature 009 — Robustness: graceful errors, invalid URL, rate limits (M8)](docs/requirements/feature-009-robustness.md)
+- [Feature 010 — Jira issues from gaps (M8)](docs/requirements/feature-010-jira-gaps.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -144,6 +146,7 @@ Stop and ask via AskUserQuestion when:
 - [ADR 005 — Competitor extraction](docs/decisions/005-competitor-extraction.md)
 - [ADR 006 — Zod validation](docs/decisions/006-zod-validation.md)
 - [ADR 007 — `api/` sub-package; Drizzle + Neon; URL identity](docs/decisions/007-api-subpackage-drizzle.md)
+- [ADR 008 — Atlassian integration (Jira + Confluence)](docs/decisions/008-atlassian-integration.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
@@ -158,3 +161,4 @@ Stop and ask via AskUserQuestion when:
 - [007-persistence](docs/retrospectives/007-persistence.md) — M6; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip. Part B: `App.tsx` reads `GET /api/competitors` via pure `competitors-api` + thin `useCompetitors`, mock-fallback+banner on any fetch throw (vite dev serves `index.html` for `/api`, so fallback fires on JSON-parse not status). Seed was never actually run until now — crashed on extensionless imports under native Node TS, fixed self-contained (PR #19).
 - [008-competitor-form](docs/retrospectives/008-competitor-form.md) — M7; add/edit `<dialog>` form over the M6 CRUD API, pure `competitor-form.ts` (values/validation + `toCompetitor`), write-path `createCompetitor`/`updateCompetitor` mirroring the read client, `useCompetitors` gains `upsert` (merge-not-refetch), website read-only on edit (immutable `websiteKey` id), first real `.btn` styles, writes deploy-verified (vite-only dev 404s on save).
 - [009-robustness](docs/retrospectives/009-robustness.md) — M8 slice 1 (FR-16); typed `ApiError` mapping (reads `{error}` body, `429`→friendly, retryable flag) shared by all clients, `researchCompetitor` + minimal `ResearchBar` (the missing M5 frontend; `noValidate` so custom `isHttpUrl` wins over native `type=url`), backend `OpenRouterError`→`ResearchError(429)` so rate limits surface as `429`, `useCompetitors` splits real server errors (error+Retry) from the dev mock-fallback by error type, `react-hooks/set-state-in-effect` forced the retry refactor.
+- [010-jira-gaps](docs/retrospectives/010-jira-gaps.md) — M8 slice 2 (FR-14, ADR 008); gaps→Jira Tasks in `KAN`, pure `domain/jira.ts` (gap→spec + minimal ADF since v3 needs ADF-not-string), `api/_lib/jira.ts` (Basic-auth, marker-label dedup via `/search/jql`, create, sync) + thin `api/jira.ts`, `syncJiraGaps` client + `IntegrationsBar`. Real `KAN` metadata read via the Atlassian MCP before coding. Review caught: `strictNullChecks` error `api/build` misses (**root build doesn't `tsc` `api/`**), duplicated `JiraSyncResult` (unified to one `app/src` Zod schema + validated reply), `summarize` moved out of the component, `strongerCompetitors`/`gapAreas` extracted to `gap.ts`.
