@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchCompetitors } from '../domain/competitors-api';
+import { ApiError } from '../domain/api-error';
 import { MOCK_COMPETITORS } from '../mocks/competitors';
 import type { Competitor } from '../domain/competitor';
 
@@ -10,23 +11,29 @@ import type { Competitor } from '../domain/competitor';
  * no jsdom) — the coverage lives in `competitors-api.spec.ts`, mirroring
  * `useViewPreference`.
  *
- * On any fetch failure it falls back to `MOCK_COMPETITORS` so `npm run dev`
- * (vite-only — `/api` isn't served locally) still renders; the caller surfaces a
- * "sample data" banner. A successful empty response stays empty (a valid state,
- * not a fallback). Returns the rival list only — VA-INDIGO is pinned by the caller.
+ * Failure is classified by type (M8, FR-16): a real server error arrives as an
+ * `ApiError` (non-OK status) → an `error` state the caller shows with a **Retry**.
+ * Any other throw — a parse/shape failure, the vite-dev signature where `/api`
+ * serves `index.html`, or an offline `fetch` reject — → the mock `fallback` +
+ * "sample data" banner, so `npm run dev` still renders. A successful empty
+ * response stays empty (a valid state). Returns rivals only — VA-INDIGO is pinned
+ * by the caller.
  *
- * `upsert` merges a saved competitor into the list (replace-by-id, else append)
- * so the M7 form can re-render after a write without a full refetch. It keeps the
- * fallback flag intact, so an optimistic save also shows against the mock list.
+ * `reload` re-runs the load (the Retry affordance). `upsert` merges a saved
+ * competitor into the list (replace-by-id, else append) so the M7 form / M8
+ * research can re-render after a write without a full refetch, keeping a fallback
+ * banner intact.
  */
 export type CompetitorsState =
   | { status: 'loading' }
   | { status: 'ready'; competitors: Competitor[] }
+  | { status: 'error'; error: string }
   | { status: 'fallback'; competitors: Competitor[]; error: string };
 
 export interface UseCompetitors {
   state: CompetitorsState;
   upsert: (competitor: Competitor) => void;
+  reload: () => void;
 }
 
 function mergeById(list: Competitor[], competitor: Competitor): Competitor[] {
@@ -38,14 +45,19 @@ function mergeById(list: Competitor[], competitor: Competitor): Competitor[] {
 export function useCompetitors(): UseCompetitors {
   const [state, setState] = useState<CompetitorsState>({ status: 'loading' });
 
-  useEffect(() => {
-    let cancelled = false;
+  // Run one fetch and resolve it into ready / error / fallback. Only sets state
+  // from the async result (never synchronously), so it is safe to call from an
+  // effect; `token.cancelled` drops a result after unmount / a superseding call.
+  const run = useCallback((token: { cancelled: boolean }) => {
     fetchCompetitors()
       .then((competitors) => {
-        if (!cancelled) setState({ status: 'ready', competitors });
+        if (!token.cancelled) setState({ status: 'ready', competitors });
       })
       .catch((error: unknown) => {
-        if (!cancelled) {
+        if (token.cancelled) return;
+        if (error instanceof ApiError) {
+          setState({ status: 'error', error: error.message });
+        } else {
           setState({
             status: 'fallback',
             competitors: MOCK_COMPETITORS,
@@ -53,14 +65,25 @@ export function useCompetitors(): UseCompetitors {
           });
         }
       });
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    const token = { cancelled: false };
+    run(token);
+    return () => {
+      token.cancelled = true;
+    };
+  }, [run]);
+
+  // Retry affordance: reset to loading (an event handler, not an effect) and refetch.
+  const reload = useCallback(() => {
+    setState({ status: 'loading' });
+    run({ cancelled: false });
+  }, [run]);
 
   const upsert = useCallback((competitor: Competitor) => {
     setState((prev) => {
-      const current = prev.status === 'loading' ? [] : prev.competitors;
+      const current = 'competitors' in prev ? prev.competitors : [];
       const competitors = mergeById(current, competitor);
       // Preserve a fallback so its banner stays; otherwise it's a ready list.
       return prev.status === 'fallback'
@@ -69,5 +92,5 @@ export function useCompetitors(): UseCompetitors {
     });
   }, []);
 
-  return { state, upsert };
+  return { state, upsert, reload };
 }

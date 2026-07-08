@@ -552,3 +552,39 @@ code {
   justify-content: flex-end;
   gap: 10px;
 }
+
+/* ── M8 research entry point + resilient load states (FR-16) ──────────── */
+
+.research-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.research-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.research-input {
+  flex: 1 1 auto;
+}
+.research-input:disabled {
+  opacity: 0.6;
+}
+.research-input[aria-invalid='true'] {
+  border-color: var(--gap);
+}
+.research-error {
+  margin-top: 2px;
+}
+
+/* A real load failure — red box with an inline Retry, distinct from the amber
+   "sample data" notice. Reuses the .form-error red styling, laid out as a row. */
+.error-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}

@@ -2,10 +2,15 @@ import { useState } from 'react';
 import CompetitorCards from './components/CompetitorCards';
 import CompetitorForm from './components/CompetitorForm';
 import CompetitorTable from './components/CompetitorTable';
+import ResearchBar from './components/ResearchBar';
 import Toolbar from './components/Toolbar';
 import { RATINGS, type Competitor } from './domain/competitor';
 import { toCompetitor, type CompetitorFormValues } from './domain/competitor-form';
-import { createCompetitor, updateCompetitor } from './domain/competitors-api';
+import {
+  createCompetitor,
+  researchCompetitor,
+  updateCompetitor,
+} from './domain/competitors-api';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
 import { ratingToCell } from './domain/rating-cell';
 import { useCompetitors } from './hooks/useCompetitors';
@@ -20,16 +25,32 @@ type FormState =
 export default function App() {
   const [filter, setFilter] = useState(EMPTY_FILTER);
   const [view, setView] = useViewPreference();
-  const { state: competitorsState, upsert } = useCompetitors();
+  const { state: competitorsState, upsert, reload } = useCompetitors();
 
   const [form, setForm] = useState<FormState>({ open: false });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const [researching, setResearching] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
+
   const loading = competitorsState.status === 'loading';
-  const source = loading ? [] : competitorsState.competitors;
+  const errored = competitorsState.status === 'error';
+  const source = 'competitors' in competitorsState ? competitorsState.competitors : [];
   const competitors = filterCompetitors(source, filter.query);
   const areas = visibleAreas(filter.areas);
+
+  const handleResearch = async (url: string) => {
+    setResearching(true);
+    setResearchError(null);
+    try {
+      upsert(await researchCompetitor(url));
+    } catch (error) {
+      setResearchError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setResearching(false);
+    }
+  };
 
   const openAdd = () => {
     setFormError(null);
@@ -80,6 +101,17 @@ export default function App() {
         </p>
       )}
 
+      {errored && (
+        <div className="form-error error-notice" role="alert">
+          <span>Couldn’t load competitors: {competitorsState.error}</span>
+          <button type="button" className="btn" onClick={reload} disabled={loading}>
+            Retry
+          </button>
+        </div>
+      )}
+
+      <ResearchBar onResearch={handleResearch} busy={researching} error={researchError} />
+
       <Toolbar
         filter={filter}
         onFilterChange={setFilter}
@@ -88,24 +120,25 @@ export default function App() {
         onAdd={openAdd}
       />
 
-      {view === 'table' ? (
-        <CompetitorTable home={VA_INDIGO} competitors={competitors} areas={areas} />
-      ) : (
-        <CompetitorCards
-          home={VA_INDIGO}
-          competitors={competitors}
-          areas={areas}
-          onEdit={openEdit}
-        />
-      )}
+      {!errored &&
+        (view === 'table' ? (
+          <CompetitorTable home={VA_INDIGO} competitors={competitors} areas={areas} />
+        ) : (
+          <CompetitorCards
+            home={VA_INDIGO}
+            competitors={competitors}
+            areas={areas}
+            onEdit={openEdit}
+          />
+        ))}
 
       {loading && <p className="empty-note">Loading competitors…</p>}
 
-      {!loading && source.length === 0 && (
-        <p className="empty-note">No competitors yet — add one via research.</p>
+      {!loading && !errored && source.length === 0 && (
+        <p className="empty-note">No competitors yet — research one above.</p>
       )}
 
-      {!loading && source.length > 0 && competitors.length === 0 && (
+      {!loading && !errored && source.length > 0 && competitors.length === 0 && (
         <p className="empty-note">No competitors match your search.</p>
       )}
 

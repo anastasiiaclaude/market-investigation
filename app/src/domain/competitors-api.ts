@@ -1,4 +1,5 @@
 import { competitorSchema, type Competitor } from './competitor';
+import { apiError, networkError } from './api-error';
 
 /**
  * Read-path client for persisted competitors (M6 Part B, FR-10). Pure over an
@@ -16,8 +17,12 @@ export async function fetchCompetitors(
   fetchImpl: typeof fetch = fetch,
 ): Promise<Competitor[]> {
   const res = await fetchImpl(COMPETITORS_ENDPOINT);
+  // A non-OK status is a real server error → an ApiError (the hook shows it +
+  // offers retry). A parse/shape failure below throws a plain Error instead — the
+  // vite-dev signature (`/api` serves index.html) → the mock "sample data"
+  // fallback. `useCompetitors` branches on the error type.
   if (!res.ok) {
-    throw new Error(`GET ${COMPETITORS_ENDPOINT} failed with status ${res.status}`);
+    throw await apiError(res);
   }
 
   const data: unknown = await res.json();
@@ -37,9 +42,22 @@ export async function fetchCompetitors(
  */
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
-async function parseWritten(res: Response, method: string): Promise<Competitor> {
+/** Await a fetch, converting a `fetch` rejection (offline/DNS) into an ApiError. */
+async function send(
+  fetchImpl: typeof fetch,
+  input: string,
+  init?: RequestInit,
+): Promise<Response> {
+  try {
+    return await fetchImpl(input, init);
+  } catch {
+    throw networkError();
+  }
+}
+
+async function parseWritten(res: Response): Promise<Competitor> {
   if (!res.ok) {
-    throw new Error(`${method} ${COMPETITORS_ENDPOINT} failed with status ${res.status}`);
+    throw await apiError(res);
   }
   return competitorSchema.parse(await res.json());
 }
@@ -49,12 +67,12 @@ export async function createCompetitor(
   competitor: Competitor,
   fetchImpl: typeof fetch = fetch,
 ): Promise<Competitor> {
-  const res = await fetchImpl(COMPETITORS_ENDPOINT, {
+  const res = await send(fetchImpl, COMPETITORS_ENDPOINT, {
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(competitor),
   });
-  return parseWritten(res, 'POST');
+  return parseWritten(res);
 }
 
 /**
@@ -66,10 +84,33 @@ export async function updateCompetitor(
   patch: Partial<Competitor>,
   fetchImpl: typeof fetch = fetch,
 ): Promise<Competitor> {
-  const res = await fetchImpl(`${COMPETITORS_ENDPOINT}?id=${encodeURIComponent(id)}`, {
+  const res = await send(fetchImpl, `${COMPETITORS_ENDPOINT}?id=${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers: JSON_HEADERS,
     body: JSON.stringify(patch),
   });
-  return parseWritten(res, 'PUT');
+  return parseWritten(res);
+}
+
+/**
+ * Research-path client (M8, FR-16 — the frontend for M5's `POST /api/research`).
+ * Posts a competitor URL; the backend fetches + summarizes it and returns the
+ * persisted `Competitor`. A non-OK status becomes an `ApiError` (429 → a friendly
+ * rate-limit message), so the research UI can show it inline and offer a retry.
+ */
+export const RESEARCH_ENDPOINT = '/api/research';
+
+export async function researchCompetitor(
+  url: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Competitor> {
+  const res = await send(fetchImpl, RESEARCH_ENDPOINT, {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ url }),
+  });
+  if (!res.ok) {
+    throw await apiError(res);
+  }
+  return competitorSchema.parse(await res.json());
 }

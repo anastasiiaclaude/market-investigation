@@ -68,7 +68,15 @@ describe('runResearch', () => {
 
   it('throws ResearchError(502) when OpenRouter fails', async () => {
     const fetchImpl = makeFetch({ completionStatus: 500 });
-    await expect(runResearch({ ...base, fetchImpl })).rejects.toBeInstanceOf(ResearchError);
+    await expect(runResearch({ ...base, fetchImpl })).rejects.toMatchObject({ status: 502 });
+  });
+
+  it('surfaces an OpenRouter 429 as ResearchError(429) (rate limit, FR-16)', async () => {
+    const fetchImpl = makeFetch({ completionStatus: 429 });
+    await expect(runResearch({ ...base, fetchImpl })).rejects.toMatchObject({
+      name: 'ResearchError',
+      status: 429,
+    });
   });
 
   it('throws ResearchError(502) when the model reply is invalid', async () => {

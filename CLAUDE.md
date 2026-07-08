@@ -48,73 +48,46 @@ npm run setup      # install app/ deps
 
 ## Current state
 
-Hello world greeting rendered. **M1 done:** Vercel skeleton — static SPA build
-(`vercel.json`) + `GET /api/health` serverless function returns `200 {status:"ok"}`.
-Backend lives in `api/` (web-standard handlers, pure logic in `api/_lib/`).
-**M2 done:** comparison core on mock data — `app/src/domain/` holds the `Competitor`
-Zod schema + `Rating`/feature-area enums (`competitor.ts`) and the pure
-`ratingToCell` presentation mapping (`rating-cell.ts`); mock dataset in
-`app/src/mocks/competitors.ts`. Zod added as a dependency (ADR 006).
-**M3 done:** comparison table UI — `domain/gap.ts` (`isGap`, `buildComparison`,
-pure + tested) flags VA-INDIGO cells that are weak/absent while a competitor is
-stronger (FR-4); `components/CompetitorTable.tsx` renders the matrix with
-VA-INDIGO (a separate `VA_INDIGO` mock record) pinned as a highlighted first
-column; `App.tsx` is now the dashboard. `.rating-*` colours + table styling in
-`index.css`; `.claude/launch.json` added for the preview server.
-**M4 done:** cards + view toggle + filter/search (FR-2, FR-3, FR-7). Pure modules
-`domain/filter.ts` (`filterCompetitors`, `visibleAreas`) + `domain/view-preference.ts`
-(`parseView`/`loadView`/`saveView`, persisted to localStorage), both node-tested.
-`buildComparison` gained an optional `areas` subset so the feature filter narrows
-rows through the same model. Components: `CompetitorCard`, `CompetitorCards`,
-`ViewToggle`, `Toolbar`; `hooks/useViewPreference` wires persistence to React.
-`App.tsx` orchestrates filter state + view; VA-INDIGO always pinned. Added a
-`preview` config (port 4173) to `.claude/launch.json` for browser verification
-when `:5173` is taken.
-**M5 done:** research endpoint `POST /api/research` (FR-8, FR-9). Fetches a
-competitor URL, extracts clean text (dependency-free pure `api/_lib/extract.ts`,
-ADR 005), summarizes + rates it via OpenRouter (`api/_lib/openrouter.ts` thin
-fetch wrapper + pure `api/_lib/summarize.ts`, ADR 004), returns a schema-valid
-`Competitor` (unpersisted). Orchestration in `api/_lib/research.ts`; thin handler
-in `api/research.ts`. Model-output validation + `toCompetitor` live in
-`app/src/domain/research.ts` so **all Zod stays in `app/src`** (backend imports it
-transitively; `api/` stays dependency-free). Guardrails: 400/500/502; live-model
-check is deploy-time (`api/*` isn't served by vite dev). Added `api/env.d.ts`
-(ambient `process`) since `api/` reads `process.env` without `@types/node`.
-SSRF guard (pure `api/_lib/url-guard.ts`, issue #15): the handler rejects
-loopback/link-local/private/metadata hosts with `400` before any fetch. Residual
-(tracked in #15): no DNS resolution or redirect re-check yet.
-**M6 Part A done (backend, issue #6):** Postgres (Neon) + Drizzle persistence +
-dedup (FR-10, FR-11). `api/` is now its own sub-package (`api/package.json`;
-`drizzle-orm` + `@neondatabase/serverless` — the non-deprecated Neon driver
-replacing `@vercel/postgres`; ADR 007). URL-based identity: `websiteKey` (pure
-`app/src/domain/identity.ts`) is the DB primary key = research dedup key = REST
-id; `toCompetitor` now sets `id = websiteKey(url)` (was a name slug). DB access
-is behind a `CompetitorRepo` seam (`api/_lib/db/`): `drizzleRepo` (live,
-deploy-verified) + `inMemoryRepo` (node tests). `POST /api/research` upserts by
-URL id, so re-runs never duplicate. CRUD via `/api/competitors` (by-id ops use
-`?id=` since URL-key ids contain slashes). Migration in `api/drizzle/`
-(`drizzle-kit generate/migrate`); idempotent seed (`_scripts/seed.ts`,
-`npm --prefix api run db:seed`) loads mock rivals re-keyed by URL. `.vercelignore`
-+ `installCommand` updated so Vercel installs `api/` deps and skips tooling.
-**M6 Part B done (frontend read-path, issue #6):** `App.tsx` now loads
-competitors from `GET /api/competitors` instead of the mock. Pure
-`app/src/domain/competitors-api.ts` (`fetchCompetitors`, validates rows via
-`competitorSchema`, node-tested with injected fetch) + thin `useCompetitors`
-hook (untested glue, like `useViewPreference`). On any fetch failure the hook
-falls back to `MOCK_COMPETITORS` + a "sample data" banner (so vite-only dev,
-where `/api` is unserved, still renders); a valid empty response shows a distinct
-empty-DB note. VA-INDIGO stays client-pinned. Seed script fixed to run under
-native Node TS (self-contained; PR #19). **M6 complete** (live DB path
-deploy-verified against Neon).
-**M7 done (add/edit form, issue #7):** `CompetitorForm` (native `<dialog>`) writes
-to the M6 CRUD API (FR-5/FR-6). Pure `app/src/domain/competitor-form.ts` holds
-values/validation + `toCompetitor` (node-tested); `competitors-api.ts` gained
-write-path `createCompetitor`/`updateCompetitor`; `useCompetitors` now returns
-`{ state, upsert }` and merges the returned record into the list (no refetch).
-Toolbar has an "Add competitor" button; rival cards have an "Edit" button. Website
-is read-only on edit (id = `websiteKey`, immutable per the M6 `PUT` contract).
-Scope: add + edit rivals only — VA-INDIGO stays non-editable, no delete. Writes are
-deploy-verified (vite-only dev 404s on save, error surfaced inline). No new dep.
+**M1–M8 slice 1 shipped.** The dashboard loads competitors from the DB, compares
+them against VA-INDIGO in a table/card view with filter/search, flags gaps
+(FR-4), supports add/edit + on-demand URL research, and fails gracefully. This is
+a snapshot — per-milestone detail lives in the retrospectives (see the
+Self-improvement log) and git history, not here.
+
+**Shape**
+
+- **Frontend** (`app/src`): pure logic in `domain/` (tested), rendering in
+  `components/`, React glue in `hooks/` (untested by design). `App.tsx` is the
+  dashboard.
+- **Backend** (`api/`): web-standard handlers, pure logic in `api/_lib/`.
+  `POST /api/research` (fetch → `extract` → OpenRouter → `Competitor`), CRUD
+  `/api/competitors` (by-id ops use `?id=` — URL-key ids contain slashes),
+  `GET /api/health`.
+- **DB**: Postgres (Neon) + Drizzle behind a `CompetitorRepo` seam — `drizzleRepo`
+  (live) + `inMemoryRepo` (tests). `api/` is its own sub-package (`api/package.json`)
+  for the DB driver; migrations + idempotent seed in `api/drizzle/` + `_scripts/`.
+
+**Load-bearing invariants**
+
+- **All Zod lives in `app/src`.** The backend imports schemas transitively so
+  `api/` stays dependency-free (except its DB sub-package) and both vitest + the
+  Vercel bundler resolve `zod` from `app/node_modules`.
+- **URL identity.** `websiteKey(url)` (`domain/identity.ts`) is the DB primary key
+  = research dedup key = REST id; set on every `toCompetitor`. Website is
+  immutable on edit.
+- **`api/*` isn't served by vite dev.** Research + CRUD round-trips are
+  deploy-verified on Vercel (needs `OPENROUTER_API_KEY` + DB). Vite-only dev falls
+  back to `MOCK_COMPETITORS` + a "sample data" banner; a real server error shows
+  an error + Retry instead (FR-16, via typed `domain/api-error.ts` `ApiError`).
+
+**Open**
+
+- M8 remaining slices: export (FR-13), Jira (FR-14), Confluence (FR-15), Cron
+  (FR-12) — each its own feature/spec/retro.
+- SSRF residual (#15): the research handler blocks private/metadata hosts, but no
+  DNS resolution or redirect re-check yet.
+- **`type="url"` without `noValidate`** in the M7 form has a latent
+  native-validation-preempts-custom issue (see retro 009).
 
 ## Working agreement
 
@@ -163,6 +136,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 006 — Research endpoint: extraction + summarization (M5)](docs/requirements/feature-006-research-endpoint.md)
 - [Feature 007 — Persistence + dedup (M6)](docs/requirements/feature-007-persistence.md)
 - [Feature 008 — Add/edit competitor form (M7)](docs/requirements/feature-008-competitor-form.md)
+- [Feature 009 — Robustness: graceful errors, invalid URL, rate limits (M8)](docs/requirements/feature-009-robustness.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -183,3 +157,4 @@ Stop and ask via AskUserQuestion when:
 - [006-research-endpoint](docs/retrospectives/006-research-endpoint.md) — M5; `POST /api/research` (fetch→extract→OpenRouter→`Competitor`), all Zod kept in `app/src` so `api/` stays dependency-free + Vercel/vitest both resolve it, dependency-free `extract`, injectable `fetchImpl` for node-only tests, ambient `api/env.d.ts` for `process.env`, live check is deploy-time.
 - [007-persistence](docs/retrospectives/007-persistence.md) — M6; `api/` became a sub-package for DB libs (Zod-via-`app/src` trick can't carry a pg driver), swapped deprecated `@vercel/postgres`→`@neondatabase/serverless` (ADR 007), URL-based `websiteKey` identity = PK = dedup key = REST id, `CompetitorRepo` seam (drizzle + in-memory) keeps tests DB-free, `?id=` route since URL ids contain slashes, `updated_at` as `text` to preserve ISO round-trip. Part B: `App.tsx` reads `GET /api/competitors` via pure `competitors-api` + thin `useCompetitors`, mock-fallback+banner on any fetch throw (vite dev serves `index.html` for `/api`, so fallback fires on JSON-parse not status). Seed was never actually run until now — crashed on extensionless imports under native Node TS, fixed self-contained (PR #19).
 - [008-competitor-form](docs/retrospectives/008-competitor-form.md) — M7; add/edit `<dialog>` form over the M6 CRUD API, pure `competitor-form.ts` (values/validation + `toCompetitor`), write-path `createCompetitor`/`updateCompetitor` mirroring the read client, `useCompetitors` gains `upsert` (merge-not-refetch), website read-only on edit (immutable `websiteKey` id), first real `.btn` styles, writes deploy-verified (vite-only dev 404s on save).
+- [009-robustness](docs/retrospectives/009-robustness.md) — M8 slice 1 (FR-16); typed `ApiError` mapping (reads `{error}` body, `429`→friendly, retryable flag) shared by all clients, `researchCompetitor` + minimal `ResearchBar` (the missing M5 frontend; `noValidate` so custom `isHttpUrl` wins over native `type=url`), backend `OpenRouterError`→`ResearchError(429)` so rate limits surface as `429`, `useCompetitors` splits real server errors (error+Retry) from the dev mock-fallback by error type, `react-hooks/set-state-in-effect` forced the retry refactor.
