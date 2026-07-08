@@ -9,9 +9,11 @@ import { RATINGS, type Competitor } from './domain/competitor';
 import { toCompetitor, type CompetitorFormValues } from './domain/competitor-form';
 import {
   createCompetitor,
+  publishConfluence,
   researchCompetitor,
   syncJiraGaps,
   updateCompetitor,
+  type ConfluencePublishResult,
   type JiraSyncResult,
 } from './domain/competitors-api';
 import { EMPTY_FILTER, filterCompetitors, visibleAreas } from './domain/filter';
@@ -41,6 +43,10 @@ export default function App() {
   const [jiraBusy, setJiraBusy] = useState(false);
   const [jiraResult, setJiraResult] = useState<JiraSyncResult | null>(null);
   const [jiraError, setJiraError] = useState<string | null>(null);
+
+  const [confluenceBusy, setConfluenceBusy] = useState(false);
+  const [confluenceResult, setConfluenceResult] = useState<ConfluencePublishResult | null>(null);
+  const [confluenceError, setConfluenceError] = useState<string | null>(null);
 
   const loading = competitorsState.status === 'loading';
   const errored = competitorsState.status === 'error';
@@ -73,6 +79,19 @@ export default function App() {
       setJiraError(error instanceof Error ? error.message : String(error));
     } finally {
       setJiraBusy(false);
+    }
+  };
+
+  const handlePublishConfluence = async () => {
+    setConfluenceBusy(true);
+    setConfluenceError(null);
+    setConfluenceResult(null);
+    try {
+      setConfluenceResult(await publishConfluence(VA_INDIGO, source));
+    } catch (error) {
+      setConfluenceError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setConfluenceBusy(false);
     }
   };
 
@@ -138,11 +157,19 @@ export default function App() {
 
       {!errored && (
         <IntegrationsBar
-          onPushJira={handlePushJira}
-          busy={jiraBusy}
-          result={jiraResult}
-          error={jiraError}
           gapCount={gapCount}
+          jira={{
+            onPush: handlePushJira,
+            busy: jiraBusy,
+            result: jiraResult,
+            error: jiraError,
+          }}
+          confluence={{
+            onPublish: handlePublishConfluence,
+            busy: confluenceBusy,
+            result: confluenceResult,
+            error: confluenceError,
+          }}
         />
       )}
 

@@ -1,63 +1,88 @@
-import type { JiraSyncResult } from '../domain/competitors-api';
+import type { ConfluencePublishResult, JiraSyncResult } from '../domain/competitors-api';
 import { summarizeJiraSync } from '../domain/jira';
 
-interface IntegrationsBarProps {
-  /** Push the current gaps to Jira; the caller runs the request + owns state. */
-  onPushJira: () => void;
+interface JiraProps {
+  onPush: () => void;
   busy: boolean;
   result: JiraSyncResult | null;
-  /** A failure to surface inline (already a friendly message). */
   error: string | null;
-  /** How many gaps exist right now — gates the button + the empty hint. */
+}
+
+interface ConfluenceProps {
+  onPublish: () => void;
+  busy: boolean;
+  result: ConfluencePublishResult | null;
+  error: string | null;
+}
+
+interface IntegrationsBarProps {
+  /** How many gaps exist right now — gates the Jira button + its hint. */
   gapCount: number;
+  jira: JiraProps;
+  confluence: ConfluenceProps;
 }
 
 /**
- * Outbound integrations for the comparison (M8). Today: "Push gaps to Jira"
- * (FR-14) — files one Task per competitive gap, deduped server-side. Thin: the
- * request + async state live in `App` over the pure `syncJiraGaps` client;
- * Confluence publish (FR-15) will join here.
+ * Outbound integrations for the comparison (M8): "Push gaps to Jira" (FR-14) and
+ * "Publish to Confluence" (FR-15). Thin — each request + its async state lives in
+ * `App` over the pure `syncJiraGaps` / `publishConfluence` clients; this only
+ * renders buttons, results, and (friendly) errors.
  */
-export default function IntegrationsBar({
-  onPushJira,
-  busy,
-  result,
-  error,
-  gapCount,
-}: IntegrationsBarProps) {
+export default function IntegrationsBar({ gapCount, jira, confluence }: IntegrationsBarProps) {
   return (
     <div className="integrations-bar">
       <div className="integrations-row">
         <button
           type="button"
           className="btn"
-          onClick={onPushJira}
-          disabled={busy || gapCount === 0}
+          onClick={jira.onPush}
+          disabled={jira.busy || gapCount === 0}
         >
-          {busy ? 'Pushing to Jira…' : 'Push gaps to Jira'}
+          {jira.busy ? 'Pushing to Jira…' : 'Push gaps to Jira'}
         </button>
-        {gapCount === 0 ? (
-          <span className="field-hint">No gaps to file — nothing to push.</span>
-        ) : (
-          <span className="field-hint">
-            {gapCount} gap{gapCount === 1 ? '' : 's'} ready to file as Jira tasks.
-          </span>
-        )}
+        <button
+          type="button"
+          className="btn"
+          onClick={confluence.onPublish}
+          disabled={confluence.busy}
+        >
+          {confluence.busy ? 'Publishing…' : 'Publish to Confluence'}
+        </button>
+        <span className="field-hint">
+          {gapCount === 0
+            ? 'No gaps to file.'
+            : `${gapCount} gap${gapCount === 1 ? '' : 's'} ready to file as Jira tasks.`}
+        </span>
       </div>
-      {result && (
+
+      {jira.result && (
         <p className="notice integrations-result" role="status">
-          {summarizeJiraSync(result)}
+          Jira: {summarizeJiraSync(jira.result)}
         </p>
       )}
-      {error && (
+      {jira.error && (
         <>
           <p className="form-error integrations-error" role="alert">
-            {error}
+            {jira.error}
           </p>
           <span className="field-hint">
             Any issues already created are safe — re-running skips them.
           </span>
         </>
+      )}
+
+      {confluence.result && (
+        <p className="notice integrations-result" role="status">
+          Confluence page {confluence.result.action} —{' '}
+          <a href={confluence.result.url} target="_blank" rel="noreferrer">
+            open page
+          </a>
+        </p>
+      )}
+      {confluence.error && (
+        <p className="form-error integrations-error" role="alert">
+          {confluence.error}
+        </p>
       )}
     </div>
   );

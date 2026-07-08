@@ -5,9 +5,11 @@ import {
   updateCompetitor,
   researchCompetitor,
   syncJiraGaps,
+  publishConfluence,
   COMPETITORS_ENDPOINT,
   RESEARCH_ENDPOINT,
   JIRA_ENDPOINT,
+  CONFLUENCE_ENDPOINT,
 } from './competitors-api';
 import { ApiError } from './api-error';
 import type { Competitor } from './competitor';
@@ -169,6 +171,27 @@ describe('syncJiraGaps', () => {
   it('throws a retryable ApiError on a 429 rate limit', async () => {
     const { impl } = recordingFetch({ error: 'rate limited' }, 429);
     const err = await syncJiraGaps(seeq, [seeq], impl).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect((err as ApiError).retryable).toBe(true);
+  });
+});
+
+describe('publishConfluence', () => {
+  const result = { pageId: '999', url: 'https://site/wiki/p/1', action: 'created' as const };
+
+  it('POSTs { home, competitors } to the Confluence endpoint and returns the result', async () => {
+    const { impl, calls } = recordingFetch(result, 200);
+    const got = await publishConfluence(seeq, [seeq], impl);
+
+    expect(got).toEqual(result);
+    expect(calls[0]?.url).toBe(CONFLUENCE_ENDPOINT);
+    expect(calls[0]?.init?.method).toBe('POST');
+    expect(JSON.parse(String(calls[0]?.init?.body))).toEqual({ home: seeq, competitors: [seeq] });
+  });
+
+  it('throws a retryable ApiError on a 429 rate limit', async () => {
+    const { impl } = recordingFetch({ error: 'rate limited' }, 429);
+    const err = await publishConfluence(seeq, [seeq], impl).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).retryable).toBe(true);
   });
