@@ -50,9 +50,14 @@ export default function IntegrationsBar({
         </p>
       )}
       {error && (
-        <p className="form-error integrations-error" role="alert">
-          {error}
-        </p>
+        <>
+          <p className="form-error integrations-error" role="alert">
+            {error}
+          </p>
+          <span className="field-hint">
+            Any issues already created are safe — re-running skips them.
+          </span>
+        </>
       )}
     </div>
   );

@@ -46,6 +46,9 @@ export async function findIssueByLabel(
   config: JiraConfig,
   fetchImpl: typeof fetch = fetch,
 ): Promise<string | null> {
+  // Match by label irrespective of status (deliberate): once a gap has an issue
+  // we never re-file it, even if that issue was later closed. Dedup is by
+  // presence, not open-ness — don't narrow this with a status clause.
   const jql = `project = "${config.projectKey}" AND labels = "${markerLabel}"`;
   const res = await fetchImpl(`${config.baseUrl}/rest/api/3/search/jql`, {
     method: 'POST',
