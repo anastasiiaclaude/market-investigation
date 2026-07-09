@@ -6,9 +6,9 @@
 import {
   comparisonPage,
   type ConfluencePublishResult,
-} from '../../app/src/domain/confluence';
-import type { Competitor } from '../../app/src/domain/competitor';
-import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian';
+} from '../../app/src/domain/confluence.js';
+import type { Competitor } from '../../app/src/domain/competitor.js';
+import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian.js';
 
 export interface ConfluenceConfig extends AtlassianCreds {
   spaceKey: string;

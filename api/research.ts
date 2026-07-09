@@ -1,7 +1,7 @@
-import { runResearch, ResearchError } from './_lib/research';
-import { DEFAULT_MODEL } from './_lib/openrouter';
-import { assertPublicUrl, BlockedUrlError } from './_lib/url-guard';
-import { getRepo, DbNotConfiguredError } from './_lib/db/client';
+import { runResearch, ResearchError } from './_lib/research.js';
+import { DEFAULT_MODEL } from './_lib/openrouter.js';
+import { assertPublicUrl, BlockedUrlError } from './_lib/url-guard.js';
+import { getRepo, DbNotConfiguredError } from './_lib/db/client.js';
 
 // Vercel Function — `POST /api/research`. Web-standard signature (no runtime
 // dependency), mirroring api/health.ts. Fetches + extracts a competitor page and

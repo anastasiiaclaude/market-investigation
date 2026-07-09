@@ -1,11 +1,11 @@
-import { syncGapsToJira, type JiraConfig } from './_lib/jira';
+import { syncGapsToJira, type JiraConfig } from './_lib/jira.js';
 import {
   AtlassianError,
   BadRequestError,
   errorResponse,
   parseHomeAndCompetitors,
   readAtlassianCreds,
-} from './_lib/atlassian';
+} from './_lib/atlassian.js';
 
 // Vercel Function — `POST /api/jira` (FR-14, ADR 008). Takes the current home +
 // competitors, computes the gaps server-side, and files a Jira Task per gap

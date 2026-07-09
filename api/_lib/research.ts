@@ -3,12 +3,12 @@
 // schema-valid Competitor. Each stage's failure is surfaced as a ResearchError
 // carrying the HTTP status the handler should return.
 
-import { extract } from './extract';
-import { buildResearchPrompt, parseResearchReply } from './summarize';
-import { callOpenRouter, OpenRouterError } from './openrouter';
-import { toCompetitor } from '../../app/src/domain/research';
-import type { Competitor } from '../../app/src/domain/competitor';
-import type { CompetitorRepo } from './db/repository';
+import { extract } from './extract.js';
+import { buildResearchPrompt, parseResearchReply } from './summarize.js';
+import { callOpenRouter, OpenRouterError } from './openrouter.js';
+import { toCompetitor } from '../../app/src/domain/research.js';
+import type { Competitor } from '../../app/src/domain/competitor.js';
+import type { CompetitorRepo } from './db/repository.js';
 
 /** A pipeline failure with the HTTP status the endpoint should respond with. */
 export class ResearchError extends Error {

@@ -1,11 +1,11 @@
-import { publishComparison, type ConfluenceConfig } from './_lib/confluence';
+import { publishComparison, type ConfluenceConfig } from './_lib/confluence.js';
 import {
   AtlassianError,
   BadRequestError,
   errorResponse,
   parseHomeAndCompetitors,
   readAtlassianCreds,
-} from './_lib/atlassian';
+} from './_lib/atlassian.js';
 
 // Vercel Function — `POST /api/confluence` (FR-15, ADR 008). Takes the current
 // home + competitors and publishes them as the canonical comparison page

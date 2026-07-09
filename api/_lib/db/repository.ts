@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import { competitors, type CompetitorRow } from './schema';
-import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor';
+import { competitors, type CompetitorRow } from './schema.js';
+import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor.js';
 
 /**
  * Data-access seam for competitors (M6, ADR 007). Everything that touches the

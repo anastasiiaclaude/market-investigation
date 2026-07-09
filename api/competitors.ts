@@ -1,11 +1,11 @@
-import { withRepo } from './_lib/db/handler-support';
+import { withRepo } from './_lib/db/handler-support.js';
 import {
   listCompetitors,
   getCompetitor,
   createCompetitor,
   updateCompetitor,
   deleteCompetitor,
-} from './_lib/db/competitors-service';
+} from './_lib/db/competitors-service.js';
 
 // Vercel Function — `/api/competitors` (M6, feature 007). Web-standard handlers
 // (no runtime dependency), mirroring api/health.ts and api/research.ts. By-id

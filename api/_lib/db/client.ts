@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
-import { drizzleRepo, type CompetitorRepo } from './repository';
+import { drizzleRepo, type CompetitorRepo } from './repository.js';
 
 // Live Postgres wiring (ADR 007). Isolated here so every other layer stays pure
 // and node-testable against the in-memory repo. Not exercised by the test suite;

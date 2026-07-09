@@ -1,5 +1,5 @@
 import { pgTable, text, jsonb } from 'drizzle-orm/pg-core';
-import type { Competitor } from '../../../app/src/domain/competitor';
+import type { Competitor } from '../../../app/src/domain/competitor.js';
 
 /**
  * The `competitors` table (M6, ADR 007). Columns mirror the `Competitor` domain

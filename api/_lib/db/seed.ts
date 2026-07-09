@@ -1,6 +1,6 @@
-import type { CompetitorRepo } from './repository';
-import { websiteKey } from '../../../app/src/domain/identity';
-import type { Competitor } from '../../../app/src/domain/competitor';
+import type { CompetitorRepo } from './repository.js';
+import { websiteKey } from '../../../app/src/domain/identity.js';
+import type { Competitor } from '../../../app/src/domain/competitor.js';
 
 /**
  * Seed competitors into a repo (M6). Idempotent: each record is upserted under

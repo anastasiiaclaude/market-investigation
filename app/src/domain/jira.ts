@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { Competitor, FeatureArea } from './competitor';
-import { buildComparison, strongerCompetitors } from './gap';
+import type { Competitor, FeatureArea } from './competitor.js';
+import { buildComparison, strongerCompetitors } from './gap.js';
 
 /**
  * Pure mapping from competitive gaps to Jira issue specs (M8, FR-14 — ADR 008).

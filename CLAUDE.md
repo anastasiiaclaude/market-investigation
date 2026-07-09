@@ -78,10 +78,20 @@ Self-improvement log) and git history, not here. Also: gaps → Jira Tasks, comp
 - **URL identity.** `websiteKey(url)` (`domain/identity.ts`) is the DB primary key
   = research dedup key = REST id; set on every `toCompetitor`. Website is
   immutable on edit.
-- **`api/*` isn't served by vite dev.** Research + CRUD round-trips are
-  deploy-verified on Vercel (needs `OPENROUTER_API_KEY` + DB). Vite-only dev falls
-  back to `MOCK_COMPETITORS` + a "sample data" banner; a real server error shows
-  an error + Retry instead (FR-16, via typed `domain/api-error.ts` `ApiError`).
+- **`api/*` isn't served by vite dev.** Research + CRUD round-trips run on Vercel
+  (need `OPENROUTER_API_KEY` + DB). Vite-only dev falls back to `MOCK_COMPETITORS`
+  + a "sample data" banner; a real server error shows an error + Retry instead
+  (FR-16, via typed `domain/api-error.ts` `ApiError`).
+- **ESM extensions are load-bearing on Vercel.** `api/package.json` is
+  `"type": "module"`, so Vercel emits each handler as an un-bundled native-ESM
+  `.js` — every relative import in the compiled graph (all `api/**` + the
+  `app/src/domain` modules it reaches) MUST carry a `.js` extension or the
+  function crashes at runtime with `ERR_MODULE_NOT_FOUND`. Local `build`/`test`/
+  `lint` do NOT catch this (Vite/vitest/tsc resolve `.js`→`.ts`), so it is only
+  caught on a real deploy. `_scripts/seed.ts` is the exception — it runs under
+  `node --experimental-strip-types`, which needs `.ts`. Fixed + deploy-verified
+  (`/api/health` returns `ok`) in PR #27; the API had never actually run on
+  Vercel before that.
 
 **Open**
 

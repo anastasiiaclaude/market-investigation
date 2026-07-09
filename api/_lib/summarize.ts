@@ -3,13 +3,13 @@
 // lives in openrouter.ts. All Zod validation is reused from the app domain
 // (parseResearchResult), so `api/` never imports `zod` directly.
 
-import type { ChatMessage } from './openrouter';
+import type { ChatMessage } from './openrouter.js';
 import {
   FEATURE_AREAS,
   FEATURE_AREA_LABELS,
   RATINGS,
-} from '../../app/src/domain/competitor';
-import { parseResearchResult, type ResearchResult } from '../../app/src/domain/research';
+} from '../../app/src/domain/competitor.js';
+import { parseResearchResult, type ResearchResult } from '../../app/src/domain/research.js';
 
 const featureList = FEATURE_AREAS.map(
   (area) => `- "${area}" (${FEATURE_AREA_LABELS[area]})`,
