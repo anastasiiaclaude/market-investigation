@@ -1,5 +1,5 @@
-import type { CompetitorRepo } from './repository';
-import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor';
+import type { CompetitorRepo } from './repository.js';
+import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor.js';
 
 /**
  * In-memory `CompetitorRepo` for node-only tests (M6). Same upsert/dedup

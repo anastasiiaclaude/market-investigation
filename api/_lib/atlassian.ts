@@ -3,7 +3,7 @@
 // status, a JSON-fetch helper, and the request-parsing/config scaffolding both
 // thin handlers need. Web-standard only — no SDK.
 
-import { parseCompetitor, type Competitor } from '../../app/src/domain/competitor';
+import { parseCompetitor, type Competitor } from '../../app/src/domain/competitor.js';
 
 /** An Atlassian REST failure carrying the upstream status (FR-16 surfacing). */
 export class AtlassianError extends Error {

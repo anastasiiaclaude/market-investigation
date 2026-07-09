@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { competitorSchema, featuresSchema, type Competitor } from './competitor';
-import { websiteKey } from './identity';
+import { competitorSchema, featuresSchema, type Competitor } from './competitor.js';
+import { websiteKey } from './identity.js';
 
 /**
  * What the LLM is asked to produce for a researched competitor: a name, a short

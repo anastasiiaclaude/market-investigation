@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import type { Competitor, FeatureArea } from './competitor';
-import { FEATURE_AREA_LABELS } from './competitor';
-import { buildComparison, gapAreas } from './gap';
+import type { Competitor, FeatureArea } from './competitor.js';
+import { FEATURE_AREA_LABELS } from './competitor.js';
+import { buildComparison, gapAreas } from './gap.js';
 
 /**
  * Pure builder for the Confluence comparison page (M8, FR-15 — ADR 008). Turns

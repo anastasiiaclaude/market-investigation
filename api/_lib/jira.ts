@@ -3,9 +3,9 @@
 // don't spam. Web-standard `fetch` + Basic auth — no SDK, mirroring OpenRouter.
 // The pure gap→spec mapping lives in app/src/domain/jira.ts; this file is the I/O.
 
-import { gapIssueSpecs, type JiraIssueSpec, type JiraSyncResult } from '../../app/src/domain/jira';
-import type { Competitor } from '../../app/src/domain/competitor';
-import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian';
+import { gapIssueSpecs, type JiraIssueSpec, type JiraSyncResult } from '../../app/src/domain/jira.js';
+import type { Competitor } from '../../app/src/domain/competitor.js';
+import { AtlassianError, fetchJson, jsonAuthHeaders, type AtlassianCreds } from './atlassian.js';
 
 export interface JiraConfig extends AtlassianCreds {
   projectKey: string;

@@ -1,6 +1,6 @@
-import { getRepo, DbNotConfiguredError } from './client';
-import type { CompetitorRepo } from './repository';
-import type { ServiceResult } from './competitors-service';
+import { getRepo, DbNotConfiguredError } from './client.js';
+import type { CompetitorRepo } from './repository.js';
+import type { ServiceResult } from './competitors-service.js';
 
 // Shared glue for the competitor handlers: turn a ServiceResult into a Response,
 // and run a service call against the live repo while mapping DB failures to 500.

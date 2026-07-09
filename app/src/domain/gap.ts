@@ -1,6 +1,6 @@
-import type { Competitor, FeatureArea } from './competitor';
-import { FEATURE_AREAS, FEATURE_AREA_LABELS } from './competitor';
-import { ratingToCell, type RatingCell } from './rating-cell';
+import type { Competitor, FeatureArea } from './competitor.js';
+import { FEATURE_AREAS, FEATURE_AREA_LABELS } from './competitor.js';
+import { ratingToCell, type RatingCell } from './rating-cell.js';
 
 /** Competitors that rate strictly higher than the home product in `area`. */
 export function strongerCompetitors(

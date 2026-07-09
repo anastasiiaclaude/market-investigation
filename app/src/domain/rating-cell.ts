@@ -1,4 +1,4 @@
-import type { Rating } from './competitor';
+import type { Rating } from './competitor.js';
 
 /** Presentation descriptor for a single rating in the comparison table. */
 export interface RatingCell {

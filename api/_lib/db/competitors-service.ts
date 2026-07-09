@@ -1,6 +1,6 @@
-import type { CompetitorRepo } from './repository';
-import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor';
-import { websiteKey } from '../../../app/src/domain/identity';
+import type { CompetitorRepo } from './repository.js';
+import { parseCompetitor, type Competitor } from '../../../app/src/domain/competitor.js';
+import { websiteKey } from '../../../app/src/domain/identity.js';
 
 /**
  * CRUD controllers for competitors (M6). Pure over an injected `CompetitorRepo`:
