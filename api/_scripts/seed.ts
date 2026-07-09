@@ -1,6 +1,10 @@
 // Seed the database with the mock competitor rivals (M6). Run against a live DB:
 //   DATABASE_URL=... npm --prefix api run db:seed
-// Idempotent — safe to re-run (upsert by URL id). VA-INDIGO is intentionally
+// Idempotent and non-destructive — inserts a seeded rival only if its URL id is
+// not already present (`onConflictDoNothing`). It fills gaps but never overwrites
+// existing rows, so user edits to a seeded rival survive re-seeding (this runs on
+// every deploy — ADR 009). Tradeoff: later changes to a mock rival in the repo
+// won't propagate to a row that already exists. VA-INDIGO is intentionally
 // excluded (it stays a client-pinned home product, not a stored competitor).
 //
 // Self-contained on purpose: it imports only the schema, `websiteKey`, and the
@@ -22,20 +26,8 @@ const db = drizzle(neon(url));
 
 for (const competitor of MOCK_COMPETITORS) {
   const row = { ...competitor, id: websiteKey(competitor.website) };
-  await db
-    .insert(competitors)
-    .values(row)
-    .onConflictDoUpdate({
-      target: competitors.id,
-      set: {
-        name: row.name,
-        website: row.website,
-        description: row.description,
-        features: row.features,
-        updatedAt: row.updatedAt,
-      },
-    });
-  console.log(`  upserted ${row.id}  (${row.name})`);
+  await db.insert(competitors).values(row).onConflictDoNothing({ target: competitors.id });
+  console.log(`  ensured ${row.id}  (${row.name})`);
 }
 
 const all = await db.select().from(competitors);

@@ -1,6 +1,9 @@
 {
   "name": "market-investigation",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "npm --prefix app run dev",
     "build": "npm --prefix app run build",

@@ -41,11 +41,20 @@ populated.
   Scripts point at it with `--config _drizzle.config.ts`. The `api/drizzle/`
   contents are `.sql`/`.json`, never built as functions, so they need no prefix.
 - **Credentials:** `DATABASE_URL` (falls back to `POSTGRES_URL`) is read from the
-  Vercel build environment — the same env var the runtime uses. The Neon–Vercel
-  integration provisions it for **Production and Preview**, so both get migrated;
-  no secret is ever handled by hand or committed.
+  Vercel build environment — the same env var the runtime uses. No secret is ever
+  handled by hand or committed.
+- **Production only.** `db:deploy` is gated on `VERCEL_ENV = production` in the
+  `buildCommand`. The Neon–Vercel integration was set up **without** per-branch
+  database branches, so Preview and Production share one database; running
+  migrate/seed on preview builds would mutate the production schema (and an
+  unmerged migration would hit prod). Gating to production avoids that. Preview
+  builds skip `db:deploy` entirely and read the shared DB read-only. (If per-branch
+  Neon databases are enabled later, the gate can be relaxed to migrate previews
+  against their own branch.)
 - **Node:** the seed uses native type stripping (`--experimental-strip-types`),
-  available on the pinned Node 22 (`.nvmrc`).
+  which needs Node ≥ 22.6. Vercel does **not** read `.nvmrc` for build Node
+  selection, so the version is pinned via `engines.node = "22.x"` in both
+  `package.json` files (and the Vercel project's Node setting is 22.x).
 
 ## Consequences
 
@@ -54,8 +63,12 @@ populated.
   required for the app to function, so fail fast at deploy time.
 - Migrations run at build time, not in a serverless function — no cold-start
   migration races, and the running functions never migrate.
-- The seed only inserts the mock competitor rivals (upsert). Real data added
-  later is untouched (different URL ids); re-seeding never deletes rows.
+- The seed is **non-destructive** (`onConflictDoNothing`): it inserts a seeded
+  rival only if its URL id is absent, so it fills gaps but never overwrites — user
+  edits to a seeded rival made through the app **survive** the next deploy, and
+  rows are never deleted. Tradeoff: a later change to a mock rival in the repo
+  won't propagate to a row that already exists (acceptable — the mocks are a
+  one-time baseline, not a source of truth to re-sync).
 - Local `build`/`test`/`lint` are unchanged (they don't invoke `db:deploy`);
   the migrate/seed path is exercised on the real Vercel deploy, where the DB
   env vars exist.

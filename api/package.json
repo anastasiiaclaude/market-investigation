@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "description": "Vercel serverless backend — persistence layer (ADR 003 + ADR 007). Domain types are imported from ../app/src; only DB libraries live here.",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "db:generate": "drizzle-kit generate --config _drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config _drizzle.config.ts",
