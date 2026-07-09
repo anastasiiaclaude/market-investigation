@@ -68,7 +68,8 @@ Self-improvement log) and git history, not here. Also: gaps → Jira Tasks, comp
   `GET /api/health`.
 - **DB**: Postgres (Neon) + Drizzle behind a `CompetitorRepo` seam — `drizzleRepo`
   (live) + `inMemoryRepo` (tests). `api/` is its own sub-package (`api/package.json`)
-  for the DB driver; migrations + idempotent seed in `api/drizzle/` + `_scripts/`.
+  for the DB driver; migrations + idempotent seed in `api/drizzle/` + `_scripts/`,
+  applied automatically at deploy time via the `buildCommand` (`db:deploy`; ADR 009).
 
 **Load-bearing invariants**
 
@@ -164,6 +165,7 @@ Stop and ask via AskUserQuestion when:
 - [ADR 006 — Zod validation](docs/decisions/006-zod-validation.md)
 - [ADR 007 — `api/` sub-package; Drizzle + Neon; URL identity](docs/decisions/007-api-subpackage-drizzle.md)
 - [ADR 008 — Atlassian integration (Jira + Confluence)](docs/decisions/008-atlassian-integration.md)
+- [ADR 009 — Deploy-time DB migrations + seed](docs/decisions/009-deploy-time-db-migrations.md)
 - [Constraints](docs/constraints.md)
 - Retrospectives: _(see Self-improvement log below)_
 
