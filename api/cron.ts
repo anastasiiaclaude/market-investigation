@@ -30,6 +30,12 @@ export async function GET(req: Request): Promise<Response> {
     throw cause;
   }
 
-  const result = await refreshAllCompetitors({ repo, apiKey, model });
-  return Response.json(result, { status: 200 });
+  try {
+    const result = await refreshAllCompetitors({ repo, apiKey, model });
+    return Response.json(result, { status: 200 });
+  } catch {
+    // Per-competitor failures are captured in the summary; this only fires if the
+    // batch itself throws (e.g. the initial repo.list()) — still return JSON.
+    return error('Scheduled refresh failed', 500);
+  }
 }

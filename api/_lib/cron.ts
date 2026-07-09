@@ -4,6 +4,7 @@
 // (api/cron.ts) is the thin Vercel entry point.
 
 import { runResearch } from './research.js';
+import { assertPublicUrl } from './url-guard.js';
 import type { CompetitorRepo } from './db/repository.js';
 
 export interface RefreshResult {
@@ -33,6 +34,10 @@ export async function refreshAllCompetitors(opts: {
 
   for (const competitor of await repo.list()) {
     try {
+      // Re-apply the SSRF guard: stored websites are attacker-influencable (writes
+      // are open, #25) and cron fetches them unprompted, so re-check before every
+      // fetch — a blocked host is recorded as a per-item failure, not a throw.
+      assertPublicUrl(competitor.website);
       await runResearch({ url: competitor.website, apiKey, model, fetchImpl, now, repo });
       result.refreshed.push(competitor.id);
     } catch (cause) {

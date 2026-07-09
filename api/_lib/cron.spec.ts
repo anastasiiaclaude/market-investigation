@@ -74,6 +74,19 @@ describe('refreshAllCompetitors', () => {
     expect((await repo.get('b.example.com'))?.description).toBe('old');
   });
 
+  it('blocks a stored private/metadata URL (SSRF guard) without fetching it', async () => {
+    const repo = inMemoryRepo();
+    await repo.upsert(make('meta', 'http://169.254.169.254/latest/meta-data/'));
+    const fetchImpl = makeFetch();
+
+    const result = await refreshAllCompetitors({ ...base, repo, fetchImpl });
+
+    expect(result.refreshed).toEqual([]);
+    expect(result.failed).toHaveLength(1);
+    expect(result.failed[0]?.id).toBe('meta');
+    expect(fetchImpl).not.toHaveBeenCalled(); // guarded before any fetch
+  });
+
   it('returns empty results and never fetches for an empty repo', async () => {
     const fetchImpl = makeFetch();
     const result = await refreshAllCompetitors({ ...base, repo: inMemoryRepo(), fetchImpl });
