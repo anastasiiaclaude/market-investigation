@@ -29,8 +29,17 @@ populated.
   every deploy.
 - **`vercel.json` `buildCommand`** becomes
   `npm --prefix api run db:deploy && npm run build`. `npm --prefix api run`
-  executes with cwd = `api/`, which is what `drizzle.config.ts` (relative `out:
+  executes with cwd = `api/`, which is what the drizzle config (relative `out:
   ./drizzle`) and the seed's relative imports already assume.
+- **Config + migrations must survive to build time.** The drizzle config and the
+  `api/drizzle/` migrations were previously in `.vercelignore` — which strips
+  files from the build entirely, so `drizzle-kit migrate` couldn't find them
+  (`drizzle.config.json … does not exist`). Fix: delete `.vercelignore` and
+  rename the config to `_drizzle.config.ts`. The `_` prefix is Vercel's own
+  "not a serverless function" signal (same rule that protects `_lib`/`_scripts`)
+  **but keeps the file in the build context**, which `.vercelignore` does not.
+  Scripts point at it with `--config _drizzle.config.ts`. The `api/drizzle/`
+  contents are `.sql`/`.json`, never built as functions, so they need no prefix.
 - **Credentials:** `DATABASE_URL` (falls back to `POSTGRES_URL`) is read from the
   Vercel build environment — the same env var the runtime uses. The Neon–Vercel
   integration provisions it for **Production and Preview**, so both get migrated;

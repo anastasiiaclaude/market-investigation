@@ -1,5 +1,0 @@
-# Backend build/dev tooling that must not be bundled as serverless functions.
-# `api/_lib` and `api/_scripts` are already ignored by Vercel's underscore rule;
-# these are the non-underscore tooling files that would otherwise be built.
-api/drizzle.config.ts
-api/drizzle
