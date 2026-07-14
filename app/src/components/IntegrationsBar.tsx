@@ -1,60 +1,26 @@
 import type { ConfluencePublishResult, JiraSyncResult } from '../domain/competitors-api';
 import { summarizeJiraSync } from '../domain/jira';
 
-interface JiraProps {
-  onPush: () => void;
-  busy: boolean;
-  result: JiraSyncResult | null;
-  error: string | null;
-}
-
-interface ConfluenceProps {
-  onPublish: () => void;
-  busy: boolean;
-  result: ConfluencePublishResult | null;
-  error: string | null;
-}
-
 interface IntegrationsBarProps {
-  /** How many gaps exist right now — gates the Jira button + its hint. */
-  gapCount: number;
-  jira: JiraProps;
-  confluence: ConfluenceProps;
+  jira: { result: JiraSyncResult | null; error: string | null };
+  confluence: { result: ConfluencePublishResult | null; error: string | null };
 }
 
 /**
- * Outbound integrations for the comparison (M8): "Push gaps to Jira" (FR-14) and
- * "Publish to Confluence" (FR-15). Thin — each request + its async state lives in
- * `App` over the pure `syncJiraGaps` / `publishConfluence` clients; this only
- * renders buttons, results, and (friendly) errors.
+ * Status area for the outbound integrations (M8, FR-14/FR-15). The action buttons
+ * now live in the page header (Atlassian pattern — primary page actions sit
+ * top-right, next to the title); this renders the async result/error banners those
+ * actions produce, as ADS section messages. Renders nothing until there is
+ * something to report, so it never leaves an empty strip. Thin: the requests + all
+ * their state live in `App` over the pure `syncJiraGaps` / `publishConfluence`
+ * clients.
  */
-export default function IntegrationsBar({ gapCount, jira, confluence }: IntegrationsBarProps) {
+export default function IntegrationsBar({ jira, confluence }: IntegrationsBarProps) {
+  const hasContent = jira.result || jira.error || confluence.result || confluence.error;
+  if (!hasContent) return null;
+
   return (
     <div className="integrations-bar">
-      <div className="integrations-row">
-        <button
-          type="button"
-          className="btn"
-          onClick={jira.onPush}
-          disabled={jira.busy || gapCount === 0}
-        >
-          {jira.busy ? 'Pushing to Jira…' : 'Push gaps to Jira'}
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={confluence.onPublish}
-          disabled={confluence.busy}
-        >
-          {confluence.busy ? 'Publishing…' : 'Publish to Confluence'}
-        </button>
-        <span className="field-hint">
-          {gapCount === 0
-            ? 'No gaps to file.'
-            : `${gapCount} gap${gapCount === 1 ? '' : 's'} ready to file as Jira tasks.`}
-        </span>
-      </div>
-
       {jira.result && (
         <p className="notice integrations-result" role="status">
           Jira: {summarizeJiraSync(jira.result)}

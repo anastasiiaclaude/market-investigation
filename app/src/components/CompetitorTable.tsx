@@ -20,14 +20,12 @@ function Cell({
   gap?: boolean;
 }) {
   const label = gap ? `${cell.label} — gap vs. competitors` : cell.label;
-  const classes = ['cell', cell.className];
+  const classes = ['cell'];
   if (home) classes.push('home-col');
   if (gap) classes.push('is-gap');
   return (
     <td className={classes.join(' ')} title={label} aria-label={label}>
-      <span className="cell-symbol" aria-hidden="true">
-        {cell.symbol}
-      </span>
+      <span className={`lozenge ${cell.className}`}>{cell.label}</span>
       {gap && (
         <span className="gap-flag" aria-hidden="true">
           ⚠
