@@ -16,8 +16,8 @@ interface CompetitorCardProps {
 
 /**
  * One competitor as a card: name, website, description, and its per-feature
- * ratings (reusing the M2/M3 cell symbols). The VA-INDIGO card is highlighted
- * and flags its gaps, mirroring the comparison table. Pure rendering. FR-2.
+ * ratings (as ADS status lozenges, like the comparison table). The VA-INDIGO
+ * card is highlighted and flags its gaps, mirroring the table. Pure rendering. FR-2.
  */
 export default function CompetitorCard({
   competitor,
@@ -49,13 +49,9 @@ export default function CompetitorCard({
             <div key={area} className={`card-feature${isGap ? ' is-gap' : ''}`}>
               <dt>{FEATURE_AREA_LABELS[area]}</dt>
               <dd>
-                <span className={`cell-symbol ${cell.className}`} aria-hidden="true">
-                  {cell.symbol}
-                </span>{' '}
-                {cell.label}
+                <span className={`lozenge ${cell.className}`}>{cell.label}</span>
                 {isGap && (
                   <span className="gap-flag" aria-label="gap vs. competitors">
-                    {' '}
                     ⚠
                   </span>
                 )}

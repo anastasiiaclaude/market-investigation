@@ -20,14 +20,12 @@ function Cell({
   gap?: boolean;
 }) {
   const label = gap ? `${cell.label} — gap vs. competitors` : cell.label;
-  const classes = ['cell', cell.className];
+  const classes = ['cell'];
   if (home) classes.push('home-col');
   if (gap) classes.push('is-gap');
   return (
     <td className={classes.join(' ')} title={label} aria-label={label}>
-      <span className="cell-symbol" aria-hidden="true">
-        {cell.symbol}
-      </span>
+      <span className={`lozenge ${cell.className}`}>{cell.label}</span>
       {gap && (
         <span className="gap-flag" aria-hidden="true">
           ⚠
@@ -46,34 +44,36 @@ export default function CompetitorTable({ home, competitors, areas }: Competitor
   const model = buildComparison(home, competitors, areas);
 
   return (
-    <table className="comparison">
-      <thead>
-        <tr>
-          <th scope="col" className="corner">
-            Feature area
-          </th>
-          <th scope="col" className="home-col">
-            {model.home.name}
-            <span className="home-badge">Your product</span>
-          </th>
-          {model.competitors.map((c) => (
-            <th scope="col" key={c.id}>
-              {c.name}
+    <div className="table-scroll">
+      <table className="comparison">
+        <thead>
+          <tr>
+            <th scope="col" className="corner">
+              Feature area
             </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {model.rows.map((row) => (
-          <tr key={row.area}>
-            <th scope="row">{row.label}</th>
-            <Cell cell={row.home.cell} home gap={row.home.isGap} />
-            {row.competitors.map((cell, i) => (
-              <Cell key={model.competitors[i]!.id} cell={cell} />
+            <th scope="col" className="home-col">
+              {model.home.name}
+              <span className="home-badge">Your product</span>
+            </th>
+            {model.competitors.map((c) => (
+              <th scope="col" key={c.id}>
+                {c.name}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {model.rows.map((row) => (
+            <tr key={row.area}>
+              <th scope="row">{row.label}</th>
+              <Cell cell={row.home.cell} home gap={row.home.isGap} />
+              {row.competitors.map((cell, i) => (
+                <Cell key={model.competitors[i]!.id} cell={cell} />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
