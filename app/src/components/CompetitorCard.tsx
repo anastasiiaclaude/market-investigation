@@ -16,8 +16,8 @@ interface CompetitorCardProps {
 
 /**
  * One competitor as a card: name, website, description, and its per-feature
- * ratings (reusing the M2/M3 cell symbols). The VA-INDIGO card is highlighted
- * and flags its gaps, mirroring the comparison table. Pure rendering. FR-2.
+ * ratings (as ADS status lozenges, like the comparison table). The VA-INDIGO
+ * card is highlighted and flags its gaps, mirroring the table. Pure rendering. FR-2.
  */
 export default function CompetitorCard({
   competitor,
