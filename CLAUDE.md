@@ -65,7 +65,8 @@ Self-improvement log) and git history, not here. Also: gaps → Jira Tasks, comp
   `/api/competitors` (by-id ops use `?id=` — URL-key ids contain slashes),
   `POST /api/jira` (gaps → Jira Tasks, deduped) + `POST /api/confluence` (comparison
   → one page, create-or-update; ADR 008, shared `api/_lib/atlassian.ts`),
-  `GET /api/health`.
+  `GET /api/cron` (daily Vercel Cron re-researches all saved competitors; bearer
+  `CRON_SECRET`), `GET /api/health`.
 - **DB**: Postgres (Neon) + Drizzle behind a `CompetitorRepo` seam — `drizzleRepo`
   (live) + `inMemoryRepo` (tests). `api/` is its own sub-package (`api/package.json`)
   for the DB driver; migrations + idempotent seed in `api/drizzle/` + `_scripts/`,
@@ -96,11 +97,11 @@ Self-improvement log) and git history, not here. Also: gaps → Jira Tasks, comp
 
 **Open**
 
-- M8 remaining slice: Cron scheduled research (FR-12) — its own feature/spec/retro.
-  (Jira FR-14 → 010; Confluence FR-15 → 011; export FR-13 → 012, all done.) Atlassian
-  creds (`ATLASSIAN_*`) are deploy-only; live Jira/Confluence verified via the MCP.
-- Unauthenticated write endpoints (research/competitors/jira/confluence) — tracked in
-  #25 (single-user posture; deferred).
+- **M8 complete** — FR-12…FR-16 all shipped (robustness 009, Jira 010, Confluence 011,
+  export 012, Cron 013). App is deployed + live on Vercel. Atlassian creds
+  (`ATLASSIAN_*`) + `CRON_SECRET` are deploy-only.
+- Unauthenticated ad-hoc write endpoints (research/competitors/jira/confluence) —
+  tracked in #25 (single-user posture; deferred). `/api/cron` is bearer-protected.
 - SSRF residual (#15): the research handler blocks private/metadata hosts, but no
   DNS resolution or redirect re-check yet.
 - **`type="url"` without `noValidate`** in the M7 form has a latent
@@ -157,6 +158,7 @@ Stop and ask via AskUserQuestion when:
 - [Feature 010 — Jira issues from gaps (M8)](docs/requirements/feature-010-jira-gaps.md)
 - [Feature 011 — Publish comparison to Confluence (M8)](docs/requirements/feature-011-confluence-publish.md)
 - [Feature 012 — Export to PDF/Excel (M8)](docs/requirements/feature-012-export.md)
+- [Feature 013 — Cron scheduled research (M8)](docs/requirements/feature-013-cron.md)
 - [ADR 001 — Agent structure](docs/decisions/001-agent-structure.md)
 - [ADR 002 — Add backend](docs/decisions/002-add-backend.md)
 - [ADR 003 — Vercel serverless + Postgres (Neon)](docs/decisions/003-deploy-vercel-serverless.md)
@@ -183,3 +185,4 @@ Stop and ask via AskUserQuestion when:
 - [010-jira-gaps](docs/retrospectives/010-jira-gaps.md) — M8 slice 2 (FR-14, ADR 008); gaps→Jira Tasks in `KAN`, pure `domain/jira.ts` (gap→spec + minimal ADF since v3 needs ADF-not-string), `api/_lib/jira.ts` (Basic-auth, marker-label dedup via `/search/jql`, create, sync) + thin `api/jira.ts`, `syncJiraGaps` client + `IntegrationsBar`. Real `KAN` metadata read via the Atlassian MCP before coding. Review caught: `strictNullChecks` error `api/build` misses (**root build doesn't `tsc` `api/`**), duplicated `JiraSyncResult` (unified to one `app/src` Zod schema + validated reply), `summarize` moved out of the component, `strongerCompetitors`/`gapAreas` extracted to `gap.ts`.
 - [011-confluence-publish](docs/retrospectives/011-confluence-publish.md) — M8 slice 3 (FR-15, ADR 008); comparison → one canonical page in `SOFTWAREEN`, create-or-update by title (v2 needs numeric `spaceId`, resolved from key; update reads version + PUTs `+1`). Pure `domain/confluence.ts` (storage-format XHTML + `escapeXml` + result schema), `api/_lib/confluence.ts`, thin `api/confluence.ts`, `publishConfluence` client + second `IntegrationsBar` button. Live page published + find-by-title confirmed via the MCP. Review-driven DRY: shared `api/_lib/atlassian.ts` now holds `errorResponse`/`readAtlassianCreds`/`parseHomeAndCompetitors`/`jsonAuthHeaders`/`fetchJson`, so both handlers shed ~40 lines and the next integration inherits the seam. Review also gated integrations on `ready` state (don't publish mock data) + `z.url()` on the reply.
 - [012-export](docs/retrospectives/012-export.md) — M8 slice 4 (FR-13); **dependency-free, no ADR**. Pure `domain/export.ts` `toCsv` off `buildComparison` (rating labels, `(gap)` suffix, CSV escaping) + `ExportBar` (Blob+UTF-8 BOM download / `window.print()`) + an `@media print` block. WYSIWYG (exports the filtered view); not gated on `ready` (local read-only). Review added `neutralizeFormula` (CSV formula-injection guard, like the earlier `javascript:` hardening). First M8 slice fully browser-verifiable (BOM checked in the downloaded bytes).
+- [013-cron](docs/retrospectives/013-cron.md) — M8 slice 5 (FR-12), **completes M8**. Daily Vercel Cron `GET /api/cron` re-researches all saved competitors: pure `api/_lib/cron.ts` `refreshAllCompetitors` (loops the existing `runResearch` per item, **per-competitor failure isolation** → `{refreshed, failed}`) + thin bearer-protected handler (`CRON_SECRET`, fail-closed) + `vercel.json` `crons`. Lesson: the earlier Jira/Confluence handlers merged with extensionless imports (broke the deploy until fixed to `.js`) — the ESM `.js` invariant is documented but `tsc` won't enforce it; check new `api/` code by hand.

@@ -2,5 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install --prefix app && npm install --prefix api",
   "buildCommand": "if [ \"$VERCEL_ENV\" = production ]; then npm --prefix api run db:deploy; fi && npm run build",
-  "outputDirectory": "app/dist"
+  "outputDirectory": "app/dist",
+  "crons": [{ "path": "/api/cron", "schedule": "0 6 * * *" }]
 }
