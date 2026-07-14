@@ -438,7 +438,15 @@ a:hover {
   box-shadow: var(--shadow-raised);
   padding: 16px;
   margin-top: 16px;
-  overflow-x: auto;
+}
+
+/* Bounded, two-axis scroll region for the comparison table. The height cap is
+   what gives the sticky header + pinned first column something to stick within;
+   without it they scroll away with the page. Horizontal scroll lives here (not
+   on .board) so a wide table never overflows the panel or its sibling controls. */
+.table-scroll {
+  overflow: auto;
+  max-height: min(70vh, 640px);
 }
 
 /* ── Comparison table ─────────────────────────────────────────────────── */
@@ -968,6 +976,11 @@ a:hover {
     border: none;
     box-shadow: none;
     padding: 0;
+    overflow: visible;
+  }
+  /* Never clip the table to the on-screen height cap when printing. */
+  .table-scroll {
+    max-height: none;
     overflow: visible;
   }
 }
