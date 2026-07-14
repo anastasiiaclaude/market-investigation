@@ -144,6 +144,7 @@ Stop and ask via AskUserQuestion when:
 
 - [PRD](docs/PRD.md)
 - [Roadmap (milestones M0–M8)](docs/ROADMAP.md)
+- [User guide (analyst capabilities)](docs/user-guide.md)
 - [Requirements overview](docs/requirements/overview.md)
 - [Technical plan](docs/requirements/technical-plan.md)
 - [Feature 001 — Hello World](docs/requirements/feature-001-hello-world.md)
