@@ -94,11 +94,11 @@ export default function UserGuide({ onClose }: UserGuideProps) {
       onClose={onClose}
       onCancel={onClose}
       onClick={handleClick}
-      aria-label="User guide"
+      aria-labelledby="guide-title"
     >
       <div className="guide-panel">
         <header className="guide-head">
-          <h2>User guide</h2>
+          <h2 id="guide-title">User guide</h2>
           <button type="button" className="btn" onClick={onClose} aria-label="Close user guide">
             Close
           </button>

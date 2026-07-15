@@ -75,7 +75,8 @@ export function parseInline(src: string): Inline[] {
   return out;
 }
 
-/** Split a table row on unescaped pipes, dropping the outer border pipes. */
+/** Split a table row on pipes, dropping the outer border pipes. (No escaped-pipe
+ *  handling — the guide has none.) */
 function splitRow(line: string): string[] {
   let s = line.trim();
   if (s.startsWith('|')) s = s.slice(1);
@@ -132,14 +133,24 @@ export function parseMarkdown(src: string): Block[] {
       continue;
     }
 
-    // Bullet list: consecutive `- ` lines.
+    // Bullet list: `- ` lines. A soft-wrapped item continues on an indented,
+    // non-blank, non-marker line, which folds into the current item (lazy
+    // continuation) rather than becoming its own paragraph.
     if (/^-\s+/.test(line)) {
-      const items: Inline[][] = [];
-      while (i < lines.length && /^-\s+/.test(lines[i] ?? '')) {
-        items.push(parseInline((lines[i] ?? '').replace(/^-\s+/, '').trim()));
+      const texts: string[] = [];
+      while (i < lines.length) {
+        const l = lines[i] ?? '';
+        if (/^-\s+/.test(l)) {
+          texts.push(l.replace(/^-\s+/, '').trim());
+        } else if (l.trim() !== '' && /^\s+\S/.test(l) && texts.length > 0) {
+          const last = texts.length - 1;
+          texts[last] = `${texts[last] ?? ''} ${l.trim()}`;
+        } else {
+          break;
+        }
         i += 1;
       }
-      blocks.push({ kind: 'list', items });
+      blocks.push({ kind: 'list', items: texts.map(parseInline) });
       continue;
     }
 

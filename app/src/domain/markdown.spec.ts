@@ -77,6 +77,32 @@ describe('parseMarkdown', () => {
     ]);
   });
 
+  it('folds a soft-wrapped continuation line into the current list item', () => {
+    const md = '- **Table** — the matrix\n  stays put while you scroll.\n- **Cards** — one per product';
+    expect(parseMarkdown(md)).toEqual([
+      {
+        kind: 'list',
+        items: [
+          [
+            { kind: 'strong', children: [{ kind: 'text', text: 'Table' }] },
+            { kind: 'text', text: ' — the matrix stays put while you scroll.' },
+          ],
+          [
+            { kind: 'strong', children: [{ kind: 'text', text: 'Cards' }] },
+            { kind: 'text', text: ' — one per product' },
+          ],
+        ],
+      },
+    ]);
+  });
+
+  it('ends the list at a blank line, keeping a following paragraph separate', () => {
+    const blocks = parseMarkdown('- only item\n\nA new paragraph.');
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0]).toMatchObject({ kind: 'list' });
+    expect(blocks[1]).toMatchObject({ kind: 'paragraph' });
+  });
+
   it('joins consecutive `> ` lines into one blockquote', () => {
     expect(parseMarkdown('> keep the\n> website read-only')).toEqual([
       {
