@@ -952,6 +952,127 @@ a:hover {
   margin: 0;
 }
 
+/* ── Nav "User guide" button ──────────────────────────────────────────── */
+
+.nav-guide-btn {
+  font-size: 13px;
+  padding: 5px 10px;
+}
+
+/* ── User-guide dialog (feature 015) ──────────────────────────────────── */
+
+.guide-dialog {
+  width: min(760px, 94vw);
+  max-height: 88vh;
+  border: none;
+  border-radius: var(--radius-panel);
+  padding: 0;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-overlay);
+  overflow: hidden;
+}
+.guide-dialog::backdrop {
+  background: var(--blanket);
+}
+.guide-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 88vh;
+}
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.guide-head h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.guide-body {
+  padding: 8px 28px 28px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+.guide-body h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 20px 0 8px;
+}
+.guide-body h2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 26px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.guide-body h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 18px 0 6px;
+}
+.guide-body p {
+  margin: 8px 0;
+}
+.guide-body ul {
+  margin: 8px 0;
+  padding-left: 22px;
+  list-style: disc;
+}
+.guide-body li {
+  margin: 4px 0;
+}
+.guide-body strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.guide-body code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 1px 5px;
+  border-radius: var(--radius-control);
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.guide-body blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--brand-subtle);
+  color: var(--text-sub);
+}
+.guide-table-scroll {
+  overflow-x: auto;
+  margin: 12px 0;
+}
+.guide-body table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+.guide-body th,
+.guide-body td {
+  text-align: left;
+  vertical-align: top;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+}
+.guide-body th {
+  background: var(--surface-sunken);
+  color: var(--text);
+  font-weight: 600;
+}
+
 /* ── Print / Save as PDF: keep only the header + comparison ────────────── */
 
 @media print {
