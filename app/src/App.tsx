@@ -6,6 +6,7 @@ import ExportBar from './components/ExportBar';
 import IntegrationsBar from './components/IntegrationsBar';
 import ResearchBar from './components/ResearchBar';
 import Toolbar from './components/Toolbar';
+import UserGuide from './components/UserGuide';
 import { RATINGS, type Competitor } from './domain/competitor';
 import { toCompetitor, type CompetitorFormValues } from './domain/competitor-form';
 import {
@@ -34,6 +35,7 @@ export default function App() {
   const [view, setView] = useViewPreference();
   const { state: competitorsState, upsert, reload } = useCompetitors();
 
+  const [guideOpen, setGuideOpen] = useState(false);
   const [form, setForm] = useState<FormState>({ open: false });
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -146,6 +148,9 @@ export default function App() {
             <span className="app-wordmark">Market Investigation</span>
           </a>
           <div className="app-nav-side">
+            <button type="button" className="btn nav-guide-btn" onClick={() => setGuideOpen(true)}>
+              User guide
+            </button>
             <span className="app-project">VON ARDENNE</span>
             <span className="app-avatar" aria-hidden="true">
               VA
@@ -278,6 +283,8 @@ export default function App() {
             error={formError}
           />
         )}
+
+        {guideOpen && <UserGuide onClose={() => setGuideOpen(false)} />}
       </main>
     </>
   );
